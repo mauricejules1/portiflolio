@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #081b29;
+    color: #ededed;
+    overflow-x: hidden;
+  }
+  
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Syne', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'Fira Code', monospace;
+  }
+}
+
+/* Neon Cyan Glow & Mirror Hard Styles */
+:root {
+  --main-color: #00eeff;
+  --bg-color: #081b29;
+  --second-bg-color: #112e42;
+  --mirror-bg: rgba(11, 30, 48, 0.75);
+}
+
+.text-neon-cyan {
+  color: #00eeff;
+  text-shadow: 0 0 12px rgba(0, 238, 255, 0.6);
+}
+
+.bg-neon-cyan {
+  background-color: #00eeff;
+}
+
+/* Hard Blue Mirror Glass Card */
+.mirror-card-hard {
+  background: linear-gradient(135deg, rgba(14, 38, 61, 0.85) 0%, rgba(8, 27, 41, 0.92) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 238, 255, 0.22);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 20px rgba(0, 238, 255, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.mirror-card-hard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0, 238, 255, 0.8), transparent);
+}
+
+.mirror-card-hard:hover {
+  border-color: rgba(0, 238, 255, 0.65);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 35px rgba(0, 238, 255, 0.35);
+  transform: translateY(-4px);
+}
+
+/* Glowing Neon Cyan Pill Button (Matching Screenshot) */
+.btn-neon-cyan {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #00eeff;
+  color: #081b29;
+  font-weight: 700;
+  border-radius: 9999px;
+  box-shadow: 0 0 15px #00eeff, 0 0 30px rgba(0, 238, 255, 0.4);
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.btn-neon-cyan:hover {
+  box-shadow: 0 0 25px #00eeff, 0 0 50px rgba(0, 238, 255, 0.8);
+  transform: scale(1.04);
+}
+
+/* Glowing Social Icon Button (Matching Screenshot) */
+.social-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 2px solid #00eeff;
+  border-radius: 50%;
+  color: #00eeff;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(0, 238, 255, 0.3);
+}
+
+.social-icon-btn:hover {
+  background: #00eeff;
+  color: #081b29;
+  box-shadow: 0 0 20px #00eeff;
+  transform: translateY(-3px);
+}
+
+/* Dual Glowing Neon Rings for Portrait (Matching Screenshot 1) */
+.neon-circle-glow {
+  position: relative;
+  border-radius: 50%;
+  padding: 8px;
+  background: linear-gradient(135deg, #00eeff, #d946ef, #00eeff);
+  box-shadow: 0 0 30px #00eeff, 0 0 60px rgba(0, 238, 255, 0.6), 0 0 90px rgba(217, 70, 239, 0.4);
+  animation: rotateGlow 8s linear infinite;
+}
+
+@keyframes rotateGlow {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* Glowing Horizontal Progress Bar */
+.progress-bar-neon {
+  background: #00eeff;
+  box-shadow: 0 0 10px #00eeff, 0 0 20px rgba(0, 238, 255, 0.5);
+}
+
+/* Mirror Pattern Background */
+.bg-mirror-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 238, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 238, 255, 0.04) 1px, transparent 1px);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #081b29;
+}
+::-webkit-scrollbar-thumb {
+  background: #112e42;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 238, 255, 0.3);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00eeff;
+  box-shadow: 0 0 10px #00eeff;
+}
+
