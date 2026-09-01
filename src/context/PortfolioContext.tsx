@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   PERSONAL_INFO as DEFAULT_PERSONAL_INFO, 
   SKILL_CATEGORIES as DEFAULT_SKILL_CATEGORIES, 
@@ -9,12 +9,17 @@ import {
   EXPERIENCES as DEFAULT_EXPERIENCES
 } from '../data/portfolioData';
 import { PersonalInfo, SkillCategory, SkillItem, Project, ServiceItem, GalleryItem, CertificateItem, ExperienceItem } from '../types';
+import { db } from '../lib/firebase';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 // Cryptographic SHA-256 hash of the administrative access key
 const SECURE_ADMIN_HASH = "20d58c3267bb60d22739820da26d34a3ebd6157e8cc0ef6dfa49c8e8a7c6a61f";
 const STORAGE_KEY = "muhire_jules_portfolio_state_v4";
 const AUTH_SESSION_KEY = "muhire_jules_admin_session";
 const INTRO_SHOWN_KEY = "muhire_jules_intro_shown";
+
+// Firestore Document Reference for persistent global state
+const CLOUD_DOC_ID = "main_content";
 
 interface PortfolioContextType {
   personalInfo: PersonalInfo;
@@ -25,6 +30,11 @@ interface PortfolioContextType {
   certificates: CertificateItem[];
   experiences: ExperienceItem[];
   
+  // Cloud sync status
+  isCloudSynced: boolean;
+  isSavingToCloud: boolean;
+  cloudError: string | null;
+
   // Admin Updates
   updatePersonalInfo: (info: Partial<PersonalInfo>) => void;
   updateSocials: (socials: Partial<PersonalInfo['socials']>) => void;
@@ -71,8 +81,9 @@ interface PortfolioContextType {
   addGalleryItem: (item: GalleryItem) => void;
   deleteGalleryItem: (id: string) => void;
   
-  // Backup & Reset
+  // Backup & Reset & Manual Cloud Sync
   resetToDefaults: () => void;
+  syncToCloudNow: () => Promise<boolean>;
   exportBackup: () => string;
   importBackup: (jsonString: string) => boolean;
 
@@ -100,6 +111,7 @@ async function sha256(str: string): Promise<string> {
 }
 
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Initialize state from LocalStorage cache first for immediate render
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -191,6 +203,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return DEFAULT_GALLERY_ITEMS;
   });
 
+  // Cloud Database Sync States
+  const [isCloudSynced, setIsCloudSynced] = useState<boolean>(false);
+  const [isSavingToCloud, setIsSavingToCloud] = useState<boolean>(false);
+  const [cloudError, setCloudError] = useState<string | null>(null);
+
   // Admin Auth State
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     return sessionStorage.getItem(AUTH_SESSION_KEY) === "true";
@@ -201,6 +218,70 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [showIntro, setShowIntro] = useState<boolean>(() => {
     return sessionStorage.getItem(INTRO_SHOWN_KEY) !== "true";
   });
+
+  // Ref to prevent initial Firestore load from triggering an immediate overwrite
+  const isInitialCloudLoadDone = useRef(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // =========================================================================
+  // 1. HARDENED CLOUD FIRESTORE REAL-TIME LISTENER & HYDRATION
+  // =========================================================================
+  useEffect(() => {
+    const docRef = doc(db, 'portfolio_content', CLOUD_DOC_ID);
+
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const cloudData = snapshot.data();
+        if (cloudData) {
+          if (cloudData.personalInfo) {
+            setPersonalInfo(prev => ({ ...prev, ...cloudData.personalInfo }));
+          }
+          if (cloudData.skillCategories && Array.isArray(cloudData.skillCategories)) {
+            setSkillCategories(cloudData.skillCategories);
+          }
+          if (cloudData.projects && Array.isArray(cloudData.projects)) {
+            setProjects(cloudData.projects);
+          }
+          if (cloudData.certificates && Array.isArray(cloudData.certificates)) {
+            setCertificates(cloudData.certificates);
+          }
+          if (cloudData.experiences && Array.isArray(cloudData.experiences)) {
+            setExperiences(cloudData.experiences);
+          }
+          if (cloudData.services && Array.isArray(cloudData.services)) {
+            setServices(cloudData.services);
+          }
+          if (cloudData.galleryItems && Array.isArray(cloudData.galleryItems)) {
+            setGalleryItems(cloudData.galleryItems);
+          }
+          setIsCloudSynced(true);
+          setCloudError(null);
+        }
+      } else {
+        // Document does not exist yet on Firestore -> initialize it with our robust state!
+        const initialPayload = {
+          personalInfo: DEFAULT_PERSONAL_INFO,
+          skillCategories: DEFAULT_SKILL_CATEGORIES,
+          projects: DEFAULT_PROJECTS,
+          certificates: DEFAULT_CERTIFICATES,
+          experiences: DEFAULT_EXPERIENCES,
+          services: DEFAULT_SERVICES,
+          galleryItems: DEFAULT_GALLERY_ITEMS,
+          updatedAt: new Date().toISOString()
+        };
+        setDoc(docRef, initialPayload, { merge: true }).catch(err => {
+          console.warn("Could not seed initial Firestore doc:", err);
+        });
+        setIsCloudSynced(true);
+      }
+      isInitialCloudLoadDone.current = true;
+    }, (err) => {
+      console.error("Firestore real-time sync error:", err);
+      setCloudError(err.message);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Dynamic Favicon and Page Branding Sync
   useEffect(() => {
@@ -220,8 +301,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [personalInfo.customLogoUrl, personalInfo.logoUrl, personalInfo.name, personalInfo.title]);
 
-  // Persist on state change
+  // =========================================================================
+  // 2. HARD PERSISTENCE (LOCAL STORAGE + DURABLE CLOUD FIRESTORE)
+  // =========================================================================
   useEffect(() => {
+    // A) Fast LocalStorage persistence
     try {
       const payload = {
         personalInfo,
@@ -237,7 +321,68 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (e) {
       console.error("Failed to save to localStorage", e);
     }
+
+    // B) Debounced Cloud Firestore Auto-Persistence
+    if (!isInitialCloudLoadDone.current) return;
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        setIsSavingToCloud(true);
+        const docRef = doc(db, 'portfolio_content', CLOUD_DOC_ID);
+        await setDoc(docRef, {
+          personalInfo,
+          skillCategories,
+          projects,
+          certificates,
+          experiences,
+          services,
+          galleryItems,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        setIsCloudSynced(true);
+        setCloudError(null);
+      } catch (err: any) {
+        console.error("Failed to save to Firestore backend:", err);
+        setCloudError(err?.message || "Cloud backend save failed");
+      } finally {
+        setIsSavingToCloud(false);
+      }
+    }, 800); // 800ms debounce
+
+    return () => {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    };
   }, [personalInfo, skillCategories, projects, certificates, experiences, services, galleryItems]);
+
+  const syncToCloudNow = async (): Promise<boolean> => {
+    try {
+      setIsSavingToCloud(true);
+      const docRef = doc(db, 'portfolio_content', CLOUD_DOC_ID);
+      await setDoc(docRef, {
+        personalInfo,
+        skillCategories,
+        projects,
+        certificates,
+        experiences,
+        services,
+        galleryItems,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+      setIsCloudSynced(true);
+      setCloudError(null);
+      return true;
+    } catch (err: any) {
+      console.error("Manual cloud sync failed:", err);
+      setCloudError(err?.message || "Manual cloud sync failed");
+      return false;
+    } finally {
+      setIsSavingToCloud(false);
+    }
+  };
 
   const finishIntro = () => {
     setShowIntro(false);
@@ -407,7 +552,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setGalleryItems(prev => prev.filter(g => g.id !== id));
   };
 
-  const resetToDefaults = () => {
+  const resetToDefaults = async () => {
     setPersonalInfo(DEFAULT_PERSONAL_INFO as PersonalInfo);
     setSkillCategories(DEFAULT_SKILL_CATEGORIES);
     setProjects(DEFAULT_PROJECTS);
@@ -416,6 +561,23 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setServices(DEFAULT_SERVICES);
     setGalleryItems(DEFAULT_GALLERY_ITEMS);
     localStorage.removeItem(STORAGE_KEY);
+    
+    // Also reset cloud document
+    try {
+      const docRef = doc(db, 'portfolio_content', CLOUD_DOC_ID);
+      await setDoc(docRef, {
+        personalInfo: DEFAULT_PERSONAL_INFO,
+        skillCategories: DEFAULT_SKILL_CATEGORIES,
+        projects: DEFAULT_PROJECTS,
+        certificates: DEFAULT_CERTIFICATES,
+        experiences: DEFAULT_EXPERIENCES,
+        services: DEFAULT_SERVICES,
+        galleryItems: DEFAULT_GALLERY_ITEMS,
+        updatedAt: new Date().toISOString()
+      });
+    } catch (e) {
+      console.warn("Could not reset cloud doc:", e);
+    }
   };
 
   const exportBackup = (): string => {
@@ -427,7 +589,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       experiences,
       services,
       galleryItems,
-      version: "4.0",
+      version: "5.0-cloud",
       exportedAt: new Date().toISOString()
     }, null, 2);
   };
@@ -459,6 +621,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         experiences,
         services,
         galleryItems,
+        isCloudSynced,
+        isSavingToCloud,
+        cloudError,
         updatePersonalInfo,
         updateSocials,
         updateSkillCategories,
@@ -490,6 +655,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addGalleryItem,
         deleteGalleryItem,
         resetToDefaults,
+        syncToCloudNow,
         exportBackup,
         importBackup,
         isAdminAuthenticated,

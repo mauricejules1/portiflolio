@@ -1,0 +1,25 @@
+{
+  "entities": {
+    "portfolio_data": {
+      "title": "Portfolio Database Document",
+      "description": "Stores all real-time portfolio items including profile info, uploaded certificates, projects, experiences, and gallery photos",
+      "type": "object",
+      "properties": {
+        "personalInfo": { "type": "object", "description": "Bio, profile picture, contact details" },
+        "skillCategories": { "type": "array", "description": "Skill categories and levels" },
+        "projects": { "type": "array", "description": "Practical projects and code links" },
+        "certificates": { "type": "array", "description": "Uploaded certificates and accreditation" },
+        "experiences": { "type": "array", "description": "Work and education milestones" },
+        "services": { "type": "array", "description": "Services offered" },
+        "galleryItems": { "type": "array", "description": "Uploaded photos and media" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp of last update" }
+      }
+    }
+  },
+  "firestore": {
+    "/portfolio_content/{docId}": {
+      "schema": "portfolio_data",
+      "description": "Live persistent portfolio content singleton document"
+    }
+  }
+}

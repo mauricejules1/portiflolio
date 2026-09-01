@@ -65,6 +65,10 @@ export const AdminPanel: React.FC = () => {
     addGalleryItem,
     deleteGalleryItem,
     resetToDefaults,
+    syncToCloudNow,
+    isCloudSynced,
+    isSavingToCloud,
+    cloudError,
     exportBackup,
     importBackup
   } = usePortfolio();
@@ -273,16 +277,49 @@ export const AdminPanel: React.FC = () => {
 
           <div className="flex items-center gap-2">
             {isAdminAuthenticated && (
-              <button
-                onClick={() => {
-                  logoutAdmin();
-                  showToast('Logged out of admin session');
-                }}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs border border-zinc-700 transition-colors cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5 text-[#00eeff]" />
-                <span>Lock Session</span>
-              </button>
+              <>
+                {/* Cloud Sync Status Badge */}
+                <div className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-mono ${
+                  cloudError 
+                    ? 'bg-amber-950/40 border-amber-500/40 text-amber-300'
+                    : isSavingToCloud 
+                      ? 'bg-[#00eeff]/10 border-[#00eeff]/40 text-[#00eeff]' 
+                      : 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+                }`}>
+                  <span className={`w-2 h-2 rounded-full ${
+                    cloudError ? 'bg-amber-400' : isSavingToCloud ? 'bg-[#00eeff] animate-ping' : 'bg-emerald-400'
+                  }`} />
+                  <span>{cloudError ? 'Cloud Offline' : isSavingToCloud ? 'Syncing to Cloud...' : 'Cloud Backend Live'}</span>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const success = await syncToCloudNow();
+                    if (success) {
+                      showToast('Successfully synchronized all changes to Cloud Database!');
+                    } else {
+                      showToast('Cloud sync encounter issue. Saved to Local Cache.');
+                    }
+                  }}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-[#00eeff]/15 text-zinc-200 hover:text-[#00eeff] text-xs border border-zinc-700 hover:border-[#00eeff]/40 transition-colors cursor-pointer"
+                  title="Force upload all portfolio content to Cloud Backend"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSavingToCloud ? 'animate-spin text-[#00eeff]' : ''}`} />
+                  <span>Sync Cloud</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    logoutAdmin();
+                    showToast('Logged out of admin session');
+                  }}
+                  className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs border border-zinc-700 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-[#00eeff]" />
+                  <span>Lock Session</span>
+                </button>
+              </>
             )}
             <button
               onClick={() => setIsAdminModalOpen(false)}

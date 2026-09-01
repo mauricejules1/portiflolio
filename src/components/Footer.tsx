@@ -246,13 +246,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenResume }) => {
               <li>
                 <a href="#projects" className="hover:text-[#00eeff] transition-colors flex items-center gap-1.5">
                   <FolderGit2 className="w-3.5 h-3.5 text-[#00eeff]/60" />
-                  <span>Practical Projects</span>
+                  <span>Projects & Certifications</span>
                 </a>
               </li>
               <li>
-                <a href="#certificates" className="hover:text-[#00eeff] transition-colors flex items-center gap-1.5">
-                  <Award className="w-3.5 h-3.5 text-[#00eeff]/60" />
-                  <span>Certificates</span>
+                <a href="#contact" className="hover:text-[#00eeff] transition-colors flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-[#00eeff]/60" />
+                  <span>Contact Me</span>
                 </a>
               </li>
             </ul>
