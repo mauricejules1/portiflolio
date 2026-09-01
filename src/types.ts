@@ -1,3 +1,13 @@
+export interface CertificateItem {
+  id: string;
+  title: string;
+  issuer: string;
+  date: string;
+  imageUrl?: string;
+  credentialUrl?: string;
+  description?: string;
+}
+
 export interface PersonalInfo {
   name: string;
   shortName: string;
@@ -8,14 +18,19 @@ export interface PersonalInfo {
   avatarUrl: string;
   portraitUrl: string;
   
-  // Logo settings
+  // Logo & Branding settings
   logoUrl?: string;
+  customLogoUrl?: string;
+  logoType?: 'text' | 'image' | 'both';
   logoText?: string;
+  logoTextHighlight?: string;
   useImageLogo?: boolean;
 
   // Hero / Home customizations
   heroGreeting?: string;
+  heroTypingPrefix?: string;
   heroRoles?: string[];
+  heroIntro?: string;
   heroCtaText?: string;
   heroCtaLink?: string;
 
@@ -24,6 +39,11 @@ export interface PersonalInfo {
   aboutSubheading?: string;
   aboutChecklist?: string[];
   aboutImageUrl?: string;
+  learningGoals?: string[];
+
+  // Resume / CV
+  resumeUrl?: string;
+  cvUploaded?: boolean;
 
   whatsappNumber: string;
   whatsappDisplay: string;
@@ -38,18 +58,26 @@ export interface PersonalInfo {
     whatsapp: string;
     email: string;
     twitter: string;
+    instagram?: string;
+    facebook?: string;
+    whatsappName?: string;
+    instagramName?: string;
+    facebookName?: string;
+    githubName?: string;
+    linkedinName?: string;
   };
 
   // Technical & Professional Skills
   technicalSkills?: { id: string; name: string; level: number; iconColor: string; iconText: string }[];
   professionalSkills?: { id: string; name: string; percentage: number }[];
+  certificates?: CertificateItem[];
 }
 
 export interface Project {
   id: string;
   title: string;
   subtitle: string;
-  category: 'systems' | 'embedded' | 'web' | 'networking' | string;
+  category: 'systems' | 'hardware' | 'networking' | 'web' | 'maintenance' | string;
   imageUrl?: string;
   description: string;
   longDescription: string;
@@ -133,4 +161,5 @@ export interface ContactMessage {
   message: string;
   createdAt: string;
 }
+
 

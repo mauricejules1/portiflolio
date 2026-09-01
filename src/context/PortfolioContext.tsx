@@ -4,14 +4,15 @@ import {
   SKILL_CATEGORIES as DEFAULT_SKILL_CATEGORIES, 
   PROJECTS as DEFAULT_PROJECTS,
   SERVICES as DEFAULT_SERVICES,
-  GALLERY_ITEMS as DEFAULT_GALLERY_ITEMS
+  GALLERY_ITEMS as DEFAULT_GALLERY_ITEMS,
+  CERTIFICATES as DEFAULT_CERTIFICATES,
+  EXPERIENCES as DEFAULT_EXPERIENCES
 } from '../data/portfolioData';
-import { PersonalInfo, SkillCategory, SkillItem, Project, ServiceItem, GalleryItem } from '../types';
+import { PersonalInfo, SkillCategory, SkillItem, Project, ServiceItem, GalleryItem, CertificateItem, ExperienceItem } from '../types';
 
 // Cryptographic SHA-256 hash of the administrative access key
-// The plaintext password is never stored or exposed anywhere in the client code or UI.
 const SECURE_ADMIN_HASH = "20d58c3267bb60d22739820da26d34a3ebd6157e8cc0ef6dfa49c8e8a7c6a61f";
-const STORAGE_KEY = "muhire_jules_portfolio_state_v3";
+const STORAGE_KEY = "muhire_jules_portfolio_state_v4";
 const AUTH_SESSION_KEY = "muhire_jules_admin_session";
 const INTRO_SHOWN_KEY = "muhire_jules_intro_shown";
 
@@ -21,6 +22,8 @@ interface PortfolioContextType {
   projects: Project[];
   services: ServiceItem[];
   galleryItems: GalleryItem[];
+  certificates: CertificateItem[];
+  experiences: ExperienceItem[];
   
   // Admin Updates
   updatePersonalInfo: (info: Partial<PersonalInfo>) => void;
@@ -50,6 +53,18 @@ interface PortfolioContextType {
   addProject: (project: Project) => void;
   editProject: (id: string, updated: Partial<Project>) => void;
   deleteProject: (id: string) => void;
+
+  // Certificates Management
+  updateCertificates: (certificates: CertificateItem[]) => void;
+  addCertificate: (certificate: CertificateItem) => void;
+  editCertificate: (id: string, updated: Partial<CertificateItem>) => void;
+  deleteCertificate: (id: string) => void;
+
+  // Experience Management
+  updateExperiences: (experiences: ExperienceItem[]) => void;
+  addExperience: (experience: ExperienceItem) => void;
+  editExperience: (id: string, updated: Partial<ExperienceItem>) => void;
+  deleteExperience: (id: string) => void;
 
   // Media & Gallery Management
   updateGalleryItems: (items: GalleryItem[]) => void;
@@ -124,6 +139,32 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return DEFAULT_PROJECTS;
   });
 
+  const [certificates, setCertificates] = useState<CertificateItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.certificates && Array.isArray(parsed.certificates)) return parsed.certificates;
+      }
+    } catch (e) {
+      console.warn("Could not parse saved certificates", e);
+    }
+    return DEFAULT_CERTIFICATES;
+  });
+
+  const [experiences, setExperiences] = useState<ExperienceItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.experiences && Array.isArray(parsed.experiences)) return parsed.experiences;
+      }
+    } catch (e) {
+      console.warn("Could not parse saved experiences", e);
+    }
+    return DEFAULT_EXPERIENCES;
+  });
+
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -161,6 +202,24 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return sessionStorage.getItem(INTRO_SHOWN_KEY) !== "true";
   });
 
+  // Dynamic Favicon and Page Branding Sync
+  useEffect(() => {
+    const logoToUse = personalInfo.customLogoUrl || personalInfo.logoUrl;
+    if (logoToUse) {
+      let faviconLink = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+      if (!faviconLink) {
+        faviconLink = document.createElement('link');
+        faviconLink.rel = 'icon';
+        document.head.appendChild(faviconLink);
+      }
+      faviconLink.href = logoToUse;
+    }
+
+    if (personalInfo.name) {
+      document.title = `${personalInfo.name} — ${personalInfo.title || "Computer System Learner"}`;
+    }
+  }, [personalInfo.customLogoUrl, personalInfo.logoUrl, personalInfo.name, personalInfo.title]);
+
   // Persist on state change
   useEffect(() => {
     try {
@@ -168,6 +227,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         personalInfo,
         skillCategories,
         projects,
+        certificates,
+        experiences,
         services,
         galleryItems,
         updatedAt: new Date().toISOString()
@@ -176,7 +237,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } catch (e) {
       console.error("Failed to save to localStorage", e);
     }
-  }, [personalInfo, skillCategories, projects, services, galleryItems]);
+  }, [personalInfo, skillCategories, projects, certificates, experiences, services, galleryItems]);
 
   const finishIntro = () => {
     setShowIntro(false);
@@ -286,6 +347,38 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setProjects(prev => prev.filter(p => p.id !== id));
   };
 
+  const updateCertificates = (newCerts: CertificateItem[]) => {
+    setCertificates(newCerts);
+  };
+
+  const addCertificate = (certificate: CertificateItem) => {
+    setCertificates(prev => [certificate, ...prev]);
+  };
+
+  const editCertificate = (id: string, updated: Partial<CertificateItem>) => {
+    setCertificates(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
+  };
+
+  const deleteCertificate = (id: string) => {
+    setCertificates(prev => prev.filter(c => c.id !== id));
+  };
+
+  const updateExperiences = (newExps: ExperienceItem[]) => {
+    setExperiences(newExps);
+  };
+
+  const addExperience = (experience: ExperienceItem) => {
+    setExperiences(prev => [experience, ...prev]);
+  };
+
+  const editExperience = (id: string, updated: Partial<ExperienceItem>) => {
+    setExperiences(prev => prev.map(e => e.id === id ? { ...e, ...updated } : e));
+  };
+
+  const deleteExperience = (id: string) => {
+    setExperiences(prev => prev.filter(e => e.id !== id));
+  };
+
   const updateServices = (newServices: ServiceItem[]) => {
     setServices(newServices);
   };
@@ -318,6 +411,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setPersonalInfo(DEFAULT_PERSONAL_INFO as PersonalInfo);
     setSkillCategories(DEFAULT_SKILL_CATEGORIES);
     setProjects(DEFAULT_PROJECTS);
+    setCertificates(DEFAULT_CERTIFICATES);
+    setExperiences(DEFAULT_EXPERIENCES);
     setServices(DEFAULT_SERVICES);
     setGalleryItems(DEFAULT_GALLERY_ITEMS);
     localStorage.removeItem(STORAGE_KEY);
@@ -328,9 +423,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       personalInfo,
       skillCategories,
       projects,
+      certificates,
+      experiences,
       services,
       galleryItems,
-      version: "3.0",
+      version: "4.0",
       exportedAt: new Date().toISOString()
     }, null, 2);
   };
@@ -341,6 +438,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (data.personalInfo) setPersonalInfo(data.personalInfo);
       if (data.skillCategories && Array.isArray(data.skillCategories)) setSkillCategories(data.skillCategories);
       if (data.projects && Array.isArray(data.projects)) setProjects(data.projects);
+      if (data.certificates && Array.isArray(data.certificates)) setCertificates(data.certificates);
+      if (data.experiences && Array.isArray(data.experiences)) setExperiences(data.experiences);
       if (data.services && Array.isArray(data.services)) setServices(data.services);
       if (data.galleryItems && Array.isArray(data.galleryItems)) setGalleryItems(data.galleryItems);
       return true;
@@ -356,6 +455,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         personalInfo,
         skillCategories,
         projects,
+        certificates,
+        experiences,
         services,
         galleryItems,
         updatePersonalInfo,
@@ -369,6 +470,14 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         deleteSkill,
         updateTechnicalSkills,
         updateProfessionalSkills,
+        updateCertificates,
+        addCertificate,
+        editCertificate,
+        deleteCertificate,
+        updateExperiences,
+        addExperience,
+        editExperience,
+        deleteExperience,
         updateServices,
         addService,
         editService,
@@ -398,11 +507,10 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 };
 
-export const usePortfolio = () => {
+export const usePortfolio = (): PortfolioContextType => {
   const context = useContext(PortfolioContext);
   if (!context) {
-    throw new Error("usePortfolio must be used within a PortfolioProvider");
+    throw new Error('usePortfolio must be used within a PortfolioProvider');
   }
   return context;
 };
-

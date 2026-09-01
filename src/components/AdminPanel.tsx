@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePortfolio } from '../context/PortfolioContext';
 import { 
   ShieldCheck, 
@@ -8,10 +8,8 @@ import {
   Cpu, 
   FolderGit2, 
   Mail, 
-  Share2, 
   Image as ImageIcon, 
   Save, 
-  RefreshCcw, 
   Download, 
   Upload, 
   Plus, 
@@ -23,16 +21,17 @@ import {
   AlertCircle,
   Eye,
   Sliders,
-  ExternalLink,
   Sparkles,
-  Layers,
-  Wrench,
-  Link,
-  HelpCircle,
-  Copy,
-  Briefcase
+  Award,
+  GraduationCap,
+  Camera,
+  RotateCcw,
+  Check,
+  Link2,
+  RefreshCw
 } from 'lucide-react';
-import { SkillCategory, SkillItem, Project, ServiceItem, GalleryItem } from '../types';
+import { SkillCategory, SkillItem, Project, CertificateItem, ExperienceItem } from '../types';
+import { PERSONAL_INFO as DEFAULT_PERSONAL_INFO } from '../data/portfolioData';
 
 export const AdminPanel: React.FC = () => {
   const { 
@@ -43,24 +42,25 @@ export const AdminPanel: React.FC = () => {
     logoutAdmin,
     personalInfo,
     updatePersonalInfo,
-    updateSocials,
     updateTechnicalSkills,
     updateProfessionalSkills,
     skillCategories,
     addSkillCategory,
-    editSkillCategory,
     deleteSkillCategory,
     addSkill,
-    editSkill,
     deleteSkill,
     projects,
     addProject,
     editProject,
     deleteProject,
-    services,
-    addService,
-    editService,
-    deleteService,
+    certificates,
+    addCertificate,
+    editCertificate,
+    deleteCertificate,
+    experiences,
+    addExperience,
+    editExperience,
+    deleteExperience,
     galleryItems,
     addGalleryItem,
     deleteGalleryItem,
@@ -76,24 +76,13 @@ export const AdminPanel: React.FC = () => {
 
   // Active Admin Tab
   const [activeTab, setActiveTab] = useState<
-    'profile' | 'logo' | 'hero' | 'about' | 'skills' | 'services' | 'projects' | 'media' | 'contact' | 'system'
+    'profile' | 'logo' | 'hero' | 'about' | 'skills' | 'certificates' | 'journey' | 'projects' | 'media' | 'contact' | 'system'
   >('profile');
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Profile Form Buffer
   const [profileForm, setProfileForm] = useState(personalInfo);
-
-  // Service Editor State
-  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
-  const [serviceForm, setServiceForm] = useState<Partial<ServiceItem>>({
-    title: '',
-    shortDesc: '',
-    fullDesc: '',
-    icon: 'code',
-    deliverables: []
-  });
-  const [newDeliverableInput, setNewDeliverableInput] = useState('');
 
   // Project Editor State
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -102,9 +91,7 @@ export const AdminPanel: React.FC = () => {
     subtitle: '',
     category: 'systems',
     description: '',
-    longDescription: '',
     technologies: [],
-    keyFeatures: [],
     githubUrl: '',
     liveUrl: '',
     imageUrl: '',
@@ -112,14 +99,35 @@ export const AdminPanel: React.FC = () => {
     date: new Date().getFullYear().toString()
   });
   const [techInput, setTechInput] = useState('');
-  const [featureInput, setFeatureInput] = useState('');
+
+  // Certificate Editor State
+  const [editingCertId, setEditingCertId] = useState<string | null>(null);
+  const [certForm, setCertForm] = useState<Partial<CertificateItem>>({
+    title: '',
+    issuer: '',
+    date: new Date().getFullYear().toString(),
+    imageUrl: '',
+    credentialUrl: '',
+    description: ''
+  });
+
+  // Experience Editor State
+  const [editingExpId, setEditingExpId] = useState<string | null>(null);
+  const [expForm, setExpForm] = useState<Partial<ExperienceItem>>({
+    role: '',
+    organization: '',
+    location: 'Rusizi, Rwanda',
+    period: '2024 - Present',
+    description: '',
+    category: 'education'
+  });
 
   // Technical Skill State
   const [techSkillForm, setTechSkillForm] = useState({
     name: '',
-    level: 90,
+    level: 85,
     iconColor: 'text-[#00eeff]',
-    iconText: 'JS'
+    iconText: 'CS'
   });
 
   // Professional Skill State
@@ -137,6 +145,12 @@ export const AdminPanel: React.FC = () => {
   // Media Manager quick upload state
   const [mediaTitle, setMediaTitle] = useState('');
   const [mediaCategory, setMediaCategory] = useState<'project' | 'portrait' | 'certificate' | 'logo'>('project');
+
+  useEffect(() => {
+    if (isAdminModalOpen) {
+      setProfileForm(personalInfo);
+    }
+  }, [isAdminModalOpen, personalInfo]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -222,28 +236,26 @@ export const AdminPanel: React.FC = () => {
   if (!isAdminModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-6 right-6 z-[70] flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#081b29] border border-[#00eeff]/80 text-[#00eeff] text-xs font-mono shadow-[0_0_25px_#00eeff] animate-in slide-in-from-top-2">
+        <div className="fixed top-6 right-6 z-[70] flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#081b29] border border-[#00eeff]/80 text-[#00eeff] text-xs font-mono shadow-lg animate-in slide-in-from-top-2">
           <CheckCircle2 className="w-4 h-4 text-[#00eeff]" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      <div className="relative w-full max-w-6xl h-[92vh] bg-[#081b29] border-2 border-[#00eeff]/50 rounded-[32px] shadow-[0_0_80px_rgba(0,238,255,0.35)] flex flex-col overflow-hidden text-zinc-100">
+      <div className="relative w-full max-w-6xl h-[92vh] bg-[#081b29] border border-zinc-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-zinc-100">
         
         {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#00eeff]/20 bg-[#061521] shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#061521] shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#00eeff] via-[#0077ff] to-[#00eeff] p-[1.5px] shadow-[0_0_15px_#00eeff]">
-              <div className="w-full h-full bg-[#081b29] rounded-[10px] flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-[#00eeff]" />
-              </div>
+            <div className="w-9 h-9 rounded-xl bg-[#00eeff]/20 border border-[#00eeff]/40 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-[#00eeff]" />
             </div>
             <div>
-              <h2 className="font-heading font-black text-white text-sm sm:text-base flex items-center gap-2">
+              <h2 className="font-bold text-white text-sm sm:text-base flex items-center gap-2">
                 <span>PORTFOLIO ADMIN CMS</span>
                 <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                   isAdminAuthenticated 
@@ -266,7 +278,7 @@ export const AdminPanel: React.FC = () => {
                   logoutAdmin();
                   showToast('Logged out of admin session');
                 }}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#0c2236] hover:bg-[#12304d] text-zinc-300 text-xs border border-[#00eeff]/20 transition-colors cursor-pointer"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs border border-zinc-700 transition-colors cursor-pointer"
               >
                 <LogOut className="w-3.5 h-3.5 text-[#00eeff]" />
                 <span>Lock Session</span>
@@ -274,7 +286,7 @@ export const AdminPanel: React.FC = () => {
             )}
             <button
               onClick={() => setIsAdminModalOpen(false)}
-              className="p-2 rounded-xl bg-[#0c2236] hover:bg-[#12304d] text-zinc-400 hover:text-white border border-[#00eeff]/20 cursor-pointer transition-colors"
+              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 cursor-pointer transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -284,13 +296,13 @@ export const AdminPanel: React.FC = () => {
         {/* Locked Login Screen */}
         {!isAdminAuthenticated ? (
           <div className="flex-1 flex items-center justify-center p-6">
-            <div className="w-full max-w-md p-8 rounded-3xl bg-[#0b1e30] border border-[#00eeff]/40 shadow-[0_0_40px_rgba(0,238,255,0.2)] space-y-6 text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-[#081b29] border-2 border-[#00eeff] flex items-center justify-center text-[#00eeff] shadow-[0_0_25px_#00eeff]">
+            <div className="w-full max-w-md p-8 rounded-2xl bg-[#0b1e30] border border-zinc-700 shadow-xl space-y-6 text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-[#081b29] border border-[#00eeff] flex items-center justify-center text-[#00eeff]">
                 <Lock className="w-8 h-8" />
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-xl font-heading font-black text-white">Administrator Access</h3>
+                <h3 className="text-xl font-bold text-white">Administrator Access</h3>
                 <p className="text-xs text-zinc-400">
                   Enter your secure portfolio administration key to edit content.
                 </p>
@@ -304,7 +316,7 @@ export const AdminPanel: React.FC = () => {
                     value={passwordInput}
                     onChange={(e) => setPasswordInput(e.target.value)}
                     required
-                    className="w-full p-3.5 rounded-2xl bg-[#081b29] border border-[#00eeff]/40 text-white placeholder-zinc-500 focus:outline-none focus:border-[#00eeff] focus:shadow-[0_0_15px_#00eeff] text-sm font-mono text-center tracking-widest transition-all"
+                    className="w-full p-3.5 rounded-xl bg-[#081b29] border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:border-[#00eeff] text-sm font-mono text-center tracking-widest transition-all"
                   />
                 </div>
 
@@ -318,7 +330,7 @@ export const AdminPanel: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isAuthenticating}
-                  className="w-full btn-neon-cyan py-3 text-xs uppercase font-extrabold cursor-pointer"
+                  className="w-full py-3 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase cursor-pointer transition-colors"
                 >
                   {isAuthenticating ? 'Verifying Key...' : 'Unlock Admin Panel'}
                 </button>
@@ -336,14 +348,15 @@ export const AdminPanel: React.FC = () => {
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
             
             {/* Sidebar Navigation */}
-            <div className="w-full md:w-60 border-b md:border-b-0 md:border-r border-[#00eeff]/20 bg-[#061521] p-3 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-x-visible shrink-0 no-scrollbar">
+            <div className="w-full md:w-60 border-b md:border-b-0 md:border-r border-zinc-800 bg-[#061521] p-3 flex md:flex-col gap-1.5 overflow-x-auto md:overflow-x-visible shrink-0 no-scrollbar">
               {[
                 { id: 'profile', label: 'Profile Info', icon: User },
                 { id: 'logo', label: 'Logo & Brand', icon: Sparkles },
                 { id: 'hero', label: 'Home / Hero', icon: Eye },
                 { id: 'about', label: 'About Me', icon: FileText },
                 { id: 'skills', label: 'My Skills', icon: Cpu },
-                { id: 'services', label: 'Services', icon: Wrench },
+                { id: 'certificates', label: 'Certificates', icon: Award },
+                { id: 'journey', label: 'Journey & Edu', icon: GraduationCap },
                 { id: 'projects', label: 'Projects', icon: FolderGit2 },
                 { id: 'media', label: 'Media & Photos', icon: ImageIcon },
                 { id: 'contact', label: 'Contact & Socials', icon: Mail },
@@ -355,10 +368,10 @@ export const AdminPanel: React.FC = () => {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-heading font-bold transition-all cursor-pointer whitespace-nowrap ${
+                    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                       isActive
-                        ? 'btn-neon-cyan'
-                        : 'text-zinc-400 hover:text-white hover:bg-[#0c2236] border border-transparent'
+                        ? 'bg-[#00eeff] text-[#081b29]'
+                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800/60 border border-transparent'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -372,19 +385,168 @@ export const AdminPanel: React.FC = () => {
             <div className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-6 bg-[#081b29]">
               
               {/* ========================================================================= */}
-              {/* TAB 1: PROFILE INFO */}
+              {/* TAB 1: PROFILE INFO & PICTURE */}
               {/* ========================================================================= */}
               {activeTab === 'profile' && (
                 <form onSubmit={handleProfileSave} className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">General Profile Information</h3>
-                      <p className="text-xs text-zinc-400">Primary bio, name, titles, location and WhatsApp numbers.</p>
+                      <h3 className="font-bold text-white text-lg">General Profile & Picture</h3>
+                      <p className="text-xs text-zinc-400">Change your profile picture, bio, name, titles, location and contact numbers.</p>
                     </div>
-                    <button type="submit" className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold flex items-center gap-1.5">
+                    <button type="submit" className="px-5 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer transition-colors">
                       <Save className="w-3.5 h-3.5" />
                       <span>Save Changes</span>
                     </button>
+                  </div>
+
+                  {/* PROFILE PICTURE MANAGEMENT CARD */}
+                  <div className="p-5 sm:p-6 rounded-2xl bg-[#0c2236] border border-[#00eeff]/40 shadow-[0_8px_30px_rgba(0,0,0,0.4)] space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-[#00eeff]/20 text-[#00eeff] flex items-center justify-center border border-[#00eeff]/40">
+                          <Camera className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-white uppercase tracking-wider font-mono">Profile Picture & Portrait Photo</h4>
+                          <p className="text-xs text-zinc-400">Upload a new photo from your device or enter an image link.</p>
+                        </div>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const defaultPic = DEFAULT_PERSONAL_INFO.portraitUrl;
+                          const defaultAvatar = DEFAULT_PERSONAL_INFO.avatarUrl;
+                          const updated = {
+                            ...profileForm,
+                            portraitUrl: defaultPic,
+                            avatarUrl: defaultAvatar,
+                            aboutImageUrl: defaultPic
+                          };
+                          setProfileForm(updated);
+                          updatePersonalInfo(updated);
+                          showToast('Profile photo reset to default');
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer self-start sm:self-auto"
+                        title="Reset to default photo"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Reset Default</span>
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                      {/* Left: Live Visual Previews */}
+                      <div className="md:col-span-4 flex flex-col items-center justify-center p-4 rounded-xl bg-[#081b29] border border-zinc-800 space-y-3">
+                        <div className="relative">
+                          <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full p-1 bg-gradient-to-tr from-[#00eeff] via-[#d946ef] to-[#0077ff] shadow-[0_0_25px_rgba(0,238,255,0.4)]">
+                            <div className="w-full h-full rounded-full bg-[#081b29] p-1">
+                              <div className="w-full h-full rounded-full overflow-hidden border-2 border-[#00eeff]/80 bg-[#0c2236]">
+                                <img
+                                  src={profileForm.portraitUrl || profileForm.avatarUrl || DEFAULT_PERSONAL_INFO.portraitUrl}
+                                  alt="Profile Preview"
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover object-top"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="absolute -bottom-1 right-0 px-2 py-0.5 rounded-full bg-[#0c2236] border border-[#10b981] text-[10px] font-mono font-bold text-[#10b981] shadow-md flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                            <span>Active</span>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs font-bold text-white truncate max-w-[160px]">{profileForm.name || "Muhire Jules"}</p>
+                          <p className="text-[10px] font-mono text-[#00eeff]">Live Profile Preview</p>
+                        </div>
+                      </div>
+
+                      {/* Right: Upload & URL Controls */}
+                      <div className="md:col-span-8 space-y-4">
+                        {/* Direct File Upload Button */}
+                        <div className="p-4 rounded-xl bg-[#081b29] border border-dashed border-[#00eeff]/50 hover:border-[#00eeff] transition-all space-y-3">
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 text-left">
+                              <div className="w-10 h-10 rounded-xl bg-[#00eeff]/10 border border-[#00eeff]/30 text-[#00eeff] flex items-center justify-center shrink-0">
+                                <Upload className="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-white">Upload New Photo File</p>
+                                <p className="text-[11px] text-zinc-400">Choose PNG, JPG, JPEG or WEBP from phone or computer</p>
+                              </div>
+                            </div>
+
+                            <label className="btn-neon-cyan px-4 py-2.5 text-xs font-bold uppercase cursor-pointer flex items-center gap-2 shrink-0 rounded-xl">
+                              <Camera className="w-4 h-4" />
+                              <span>Select Photo</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleGenericImageUpload(e, (url) => {
+                                  const updated = {
+                                    ...profileForm,
+                                    portraitUrl: url,
+                                    avatarUrl: url,
+                                    aboutImageUrl: url
+                                  };
+                                  setProfileForm(updated);
+                                  updatePersonalInfo(updated);
+                                  showToast('New profile photo uploaded and applied everywhere!');
+                                })}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Or Paste Image Link */}
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1.5 flex items-center gap-1.5">
+                            <Link2 className="w-3.5 h-3.5" />
+                            <span>Or Enter Image URL Link</span>
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="https://... or image link"
+                              value={profileForm.portraitUrl || profileForm.avatarUrl || ''}
+                              onChange={(e) => {
+                                const url = e.target.value;
+                                setProfileForm({
+                                  ...profileForm,
+                                  portraitUrl: url,
+                                  avatarUrl: url,
+                                  aboutImageUrl: url
+                                });
+                              }}
+                              className="flex-1 p-2.5 rounded-xl bg-[#081b29] border border-zinc-700 text-white text-xs font-mono focus:outline-none focus:border-[#00eeff]"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updatePersonalInfo({
+                                  portraitUrl: profileForm.portraitUrl,
+                                  avatarUrl: profileForm.avatarUrl,
+                                  aboutImageUrl: profileForm.aboutImageUrl || profileForm.portraitUrl
+                                });
+                                showToast('Profile photo link applied & saved!');
+                              }}
+                              className="px-4 py-2.5 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer transition-colors"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Apply</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-[11px] text-zinc-400 font-mono pt-1">
+                          <Sparkles className="w-3.5 h-3.5 text-[#00eeff]" />
+                          <span>Automatically synchronizes to Navbar Avatar, Hero Portrait, and About Section.</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -394,7 +556,7 @@ export const AdminPanel: React.FC = () => {
                         type="text"
                         value={profileForm.name}
                         onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                       />
                     </div>
 
@@ -404,7 +566,17 @@ export const AdminPanel: React.FC = () => {
                         type="text"
                         value={profileForm.title}
                         onChange={(e) => setProfileForm({ ...profileForm, title: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Field of Study</label>
+                      <input
+                        type="text"
+                        value={profileForm.fieldOfStudy || ''}
+                        onChange={(e) => setProfileForm({ ...profileForm, fieldOfStudy: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                       />
                     </div>
 
@@ -414,7 +586,7 @@ export const AdminPanel: React.FC = () => {
                         type="text"
                         value={profileForm.location}
                         onChange={(e) => setProfileForm({ ...profileForm, location: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                       />
                     </div>
 
@@ -424,7 +596,7 @@ export const AdminPanel: React.FC = () => {
                         type="text"
                         value={profileForm.availabilityStatus}
                         onChange={(e) => setProfileForm({ ...profileForm, availabilityStatus: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                       />
                     </div>
 
@@ -434,28 +606,38 @@ export const AdminPanel: React.FC = () => {
                         type="email"
                         value={profileForm.email}
                         onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">WhatsApp Number (International format)</label>
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">WhatsApp Number</label>
                       <input
                         type="text"
                         value={profileForm.whatsappNumber}
                         onChange={(e) => setProfileForm({ ...profileForm, whatsappNumber: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">WhatsApp Display Text</label>
+                      <input
+                        type="text"
+                        value={profileForm.whatsappDisplay || ''}
+                        onChange={(e) => setProfileForm({ ...profileForm, whatsappDisplay: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-[#00eeff] mb-1">Professional Bio</label>
+                    <label className="block text-xs font-mono text-[#00eeff] mb-1">Bio / Learner Summary</label>
                     <textarea
                       rows={4}
                       value={profileForm.bio}
                       onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
-                      className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff] resize-none"
+                      className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff] resize-none"
                     />
                   </div>
 
@@ -463,22 +645,23 @@ export const AdminPanel: React.FC = () => {
                     <label className="block text-xs font-mono text-[#00eeff] mb-1">Resume / CV Document URL</label>
                     <input
                       type="text"
-                      value={profileForm.resumeUrl}
+                      value={profileForm.resumeUrl || ''}
                       onChange={(e) => setProfileForm({ ...profileForm, resumeUrl: e.target.value })}
-                      className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                      placeholder="https://.../cv.pdf or relative link"
+                      className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm focus:outline-none focus:border-[#00eeff]"
                     />
                   </div>
                 </form>
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 2: LOGO & BRANDING MANAGEMENT */}
+              {/* TAB 2: LOGO & BRANDING */}
               {/* ========================================================================= */}
               {activeTab === 'logo' && (
                 <div className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">Logo & Brand Customization</h3>
+                      <h3 className="font-bold text-white text-lg">Logo & Brand Customization</h3>
                       <p className="text-xs text-zinc-400">Upload or replace your custom logo, customize logo text, and preview live.</p>
                     </div>
                     <button
@@ -486,304 +669,124 @@ export const AdminPanel: React.FC = () => {
                         updatePersonalInfo(profileForm);
                         showToast('Logo settings saved');
                       }}
-                      className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer transition-colors"
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>Save Logo</span>
                     </button>
                   </div>
 
-                  {/* Live Logo Preview Box */}
-                  <div className="mirror-card-hard rounded-2xl p-6 space-y-4">
-                    <h4 className="text-xs font-mono text-[#00eeff] uppercase font-bold">Live Navigation Bar Preview</h4>
-                    <div className="p-4 rounded-xl bg-[#061521] border border-[#00eeff]/30 flex items-center justify-between">
-                      {/* Logo Preview */}
-                      <div className="flex items-center gap-3">
-                        {profileForm.logoType !== 'text' && profileForm.customLogoUrl && (
-                          <img
-                            src={profileForm.customLogoUrl}
-                            alt="Logo preview"
-                            className="h-9 w-auto max-w-[140px] object-contain rounded-md"
-                          />
-                        )}
-                        {profileForm.logoType !== 'image' && (
-                          <span className="text-xl font-heading font-black tracking-wider text-white">
-                            {profileForm.logoText || "MUHIRE"}
-                            <span className="text-[#00eeff] [text-shadow:0_0_10px_#00eeff]">{profileForm.logoTextHighlight || "."}</span>
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Mock nav pills */}
-                      <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-zinc-400">
-                        <span className="text-[#00eeff]">Home</span>
-                        <span>About</span>
-                        <span>Services</span>
-                        <span>Skills</span>
-                        <span>Projects</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Logo Display Mode Selector */}
-                  <div className="space-y-2">
-                    <label className="block text-xs font-mono text-[#00eeff]">Logo Display Format</label>
+                  <div className="p-6 rounded-2xl bg-[#0c2236] border border-zinc-700 space-y-4">
+                    <h4 className="text-xs font-mono text-[#00eeff] uppercase font-bold">Logo Display Mode</h4>
                     <div className="grid grid-cols-3 gap-3">
-                      {[
-                        { id: 'text', label: 'Text Only' },
-                        { id: 'image', label: 'Image Only' },
-                        { id: 'both', label: 'Image + Text' }
-                      ].map((opt) => (
+                      {(['text', 'image', 'both'] as const).map((mode) => (
                         <button
-                          key={opt.id}
+                          key={mode}
                           type="button"
-                          onClick={() => {
-                            setProfileForm({ ...profileForm, logoType: opt.id as any });
-                            updatePersonalInfo({ logoType: opt.id as any });
-                          }}
-                          className={`p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                            profileForm.logoType === opt.id
-                              ? 'bg-[#00eeff]/20 border-[#00eeff] text-[#00eeff] shadow-[0_0_15px_rgba(0,238,255,0.3)]'
-                              : 'bg-[#0c2236] border-[#00eeff]/20 text-zinc-300 hover:border-[#00eeff]/50'
+                          onClick={() => setProfileForm({ ...profileForm, logoType: mode })}
+                          className={`p-3 rounded-xl text-xs font-bold uppercase transition-colors cursor-pointer border ${
+                            profileForm.logoType === mode
+                              ? 'bg-[#00eeff] text-[#081b29] border-[#00eeff]'
+                              : 'bg-[#081b29] text-zinc-300 border-zinc-700 hover:bg-zinc-800'
                           }`}
                         >
-                          {opt.label}
+                          {mode} Logo
                         </button>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Text Logo Options */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Logo Text Brand</label>
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Custom Logo Image URL</label>
                       <input
                         type="text"
-                        value={profileForm.logoText || ''}
-                        placeholder="MUHIRE"
-                        onChange={(e) => {
-                          setProfileForm({ ...profileForm, logoText: e.target.value });
-                          updatePersonalInfo({ logoText: e.target.value });
-                        }}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm font-heading font-black tracking-wide focus:outline-none focus:border-[#00eeff]"
+                        value={profileForm.customLogoUrl || ''}
+                        onChange={(e) => setProfileForm({ ...profileForm, customLogoUrl: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-[#081b29] border border-zinc-700 text-white text-sm"
                       />
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Text Suffix / Dot Highlight</label>
-                      <input
-                        type="text"
-                        value={profileForm.logoTextHighlight || ''}
-                        placeholder="."
-                        onChange={(e) => {
-                          setProfileForm({ ...profileForm, logoTextHighlight: e.target.value });
-                          updatePersonalInfo({ logoTextHighlight: e.target.value });
-                        }}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm font-heading font-black focus:outline-none focus:border-[#00eeff]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Logo Image File Upload & URL */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-mono text-[#00eeff]">Logo Graphic Image (PNG, SVG, WebP, JPG)</label>
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                      {/* Image Preview / Placeholder */}
-                      <div className="w-24 h-24 rounded-2xl bg-[#0c2236] border-2 border-dashed border-[#00eeff]/40 flex items-center justify-center overflow-hidden shrink-0">
-                        {profileForm.customLogoUrl ? (
-                          <img
-                            src={profileForm.customLogoUrl}
-                            alt="Custom Logo"
-                            className="w-full h-full object-contain p-2"
-                          />
-                        ) : (
-                          <Sparkles className="w-8 h-8 text-[#00eeff]/40" />
-                        )}
-                      </div>
-
-                      {/* Upload Controls */}
-                      <div className="flex-1 space-y-2 w-full">
-                        <div className="flex items-center gap-2">
-                          <label className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold cursor-pointer flex items-center gap-1.5">
-                            <Upload className="w-3.5 h-3.5" />
-                            <span>Upload File</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleGenericImageUpload(e, (url) => {
-                                setProfileForm(prev => ({ ...prev, customLogoUrl: url, logoType: 'both' }));
-                                updatePersonalInfo({ customLogoUrl: url, logoType: 'both' });
-                              })}
-                            />
-                          </label>
-
-                          {profileForm.customLogoUrl && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setProfileForm(prev => ({ ...prev, customLogoUrl: '', logoType: 'text' }));
-                                updatePersonalInfo({ customLogoUrl: '', logoType: 'text' });
-                                showToast('Logo image removed');
-                              }}
-                              className="px-4 py-2 rounded-xl bg-[#0c2236] border border-rose-500/40 text-rose-400 hover:bg-rose-950 text-xs font-bold transition-all cursor-pointer flex items-center gap-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span>Remove Image</span>
-                            </button>
-                          )}
-                        </div>
-
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Or paste direct image URL (https://...)"
-                            value={profileForm.customLogoUrl || ''}
-                            onChange={(e) => {
-                              setProfileForm({ ...profileForm, customLogoUrl: e.target.value });
-                              updatePersonalInfo({ customLogoUrl: e.target.value });
-                            }}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono focus:outline-none focus:border-[#00eeff]"
-                          />
-                        </div>
-                      </div>
+                    <div className="pt-2">
+                      <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#081b29] border border-zinc-700 hover:bg-zinc-800 text-zinc-200 text-xs cursor-pointer">
+                        <Upload className="w-4 h-4 text-[#00eeff]" />
+                        <span>Upload Logo File</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleGenericImageUpload(e, (url) => {
+                            setProfileForm({ ...profileForm, customLogoUrl: url, logoType: 'image' });
+                          })}
+                        />
+                      </label>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 3: HERO SECTION CUSTOMIZER */}
+              {/* TAB 3: HERO SECTION */}
               {/* ========================================================================= */}
               {activeTab === 'hero' && (
                 <div className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">Home / Hero Customizer</h3>
-                      <p className="text-xs text-zinc-400">Control the animated typing titles, greeting, and hero portrait.</p>
+                      <h3 className="font-bold text-white text-lg">Hero / Intro Section</h3>
+                      <p className="text-xs text-zinc-400">Configure greeting, typing roles, and portrait photo.</p>
                     </div>
                     <button
                       onClick={() => {
                         updatePersonalInfo(profileForm);
                         showToast('Hero settings saved');
                       }}
-                      className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer"
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>Save Hero</span>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Greeting Text</label>
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Hero Greeting</label>
                       <input
                         type="text"
                         value={profileForm.heroGreeting || ''}
-                        placeholder="Hello, It's Me"
                         onChange={(e) => setProfileForm({ ...profileForm, heroGreeting: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Typing Prefix Text</label>
-                      <input
-                        type="text"
-                        value={profileForm.heroTypingPrefix || ''}
-                        placeholder="And I'm a"
-                        onChange={(e) => setProfileForm({ ...profileForm, heroTypingPrefix: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Hero Tagline / Subtitle</label>
+                      <textarea
+                        rows={3}
+                        value={profileForm.heroTagline || ''}
+                        onChange={(e) => setProfileForm({ ...profileForm, heroTagline: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm"
                       />
                     </div>
-                  </div>
 
-                  {/* Animated Typing Titles / Roles */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-mono text-[#00eeff]">Dynamic Typing Roles (Animated in Cyan)</label>
-                    <div className="flex flex-wrap gap-2">
-                      {(profileForm.heroRoles || ['Computer Systems Architect', 'Embedded & IoT Engineer', 'Full-Stack Developer', 'Hardware Designer']).map((role, idx) => (
-                        <span key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0c2236] border border-[#00eeff]/40 text-[#00eeff] text-xs font-mono">
-                          <span>{role}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newRoles = (profileForm.heroRoles || []).filter((_, i) => i !== idx);
-                              setProfileForm({ ...profileForm, heroRoles: newRoles });
-                              updatePersonalInfo({ heroRoles: newRoles });
-                            }}
-                            className="hover:text-rose-400 cursor-pointer"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Add new typing role (e.g. RISC-V Designer)"
-                        value={newTagInput}
-                        onChange={(e) => setNewTagInput(e.target.value)}
-                        className="flex-1 p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono focus:outline-none focus:border-[#00eeff]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (newTagInput.trim()) {
-                            const newRoles = [...(profileForm.heroRoles || []), newTagInput.trim()];
-                            setProfileForm({ ...profileForm, heroRoles: newRoles });
-                            updatePersonalInfo({ heroRoles: newRoles });
-                            setNewTagInput('');
-                            showToast('Role added to typing animation');
-                          }
-                        }}
-                        className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold"
-                      >
-                        Add Role
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Hero Portrait Photo */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-mono text-[#00eeff]">Hero Portrait Photograph</label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-[#00eeff] to-[#0077ff] shrink-0">
-                        <img
-                          src={profileForm.portraitUrl || profileForm.avatarUrl}
-                          alt="Hero Portrait"
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      </div>
-
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <label className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold cursor-pointer flex items-center gap-1.5">
-                            <Upload className="w-3.5 h-3.5" />
-                            <span>Replace Portrait</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleGenericImageUpload(e, (url) => {
-                                setProfileForm(prev => ({ ...prev, portraitUrl: url, avatarUrl: url }));
-                                updatePersonalInfo({ portraitUrl: url, avatarUrl: url });
-                              })}
-                            />
-                          </label>
-                        </div>
+                    <div>
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Hero Portrait URL</label>
+                      <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Or paste direct image URL"
-                          value={profileForm.portraitUrl || ''}
-                          onChange={(e) => {
-                            setProfileForm({ ...profileForm, portraitUrl: e.target.value, avatarUrl: e.target.value });
-                            updatePersonalInfo({ portraitUrl: e.target.value, avatarUrl: e.target.value });
-                          }}
-                          className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono focus:outline-none focus:border-[#00eeff]"
+                          value={profileForm.portraitUrl || profileForm.avatarUrl || ''}
+                          onChange={(e) => setProfileForm({ ...profileForm, portraitUrl: e.target.value, avatarUrl: e.target.value })}
+                          className="flex-1 p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm"
                         />
+                        <label className="px-4 py-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 cursor-pointer text-xs">
+                          <Upload className="w-4 h-4 text-[#00eeff]" />
+                          <span>Upload</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleGenericImageUpload(e, (url) => {
+                              setProfileForm({ ...profileForm, portraitUrl: url, avatarUrl: url });
+                            })}
+                          />
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -791,535 +794,289 @@ export const AdminPanel: React.FC = () => {
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 4: ABOUT ME SECTION */}
+              {/* TAB 4: ABOUT ME */}
               {/* ========================================================================= */}
               {activeTab === 'about' && (
                 <div className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">About Me Customizer</h3>
-                      <p className="text-xs text-zinc-400">Edit biography, strengths checklist, quick stats cards and portrait.</p>
+                      <h3 className="font-bold text-white text-lg">About Section</h3>
+                      <p className="text-xs text-zinc-400">Configure detailed about biography and learning focus points.</p>
                     </div>
                     <button
                       onClick={() => {
                         updatePersonalInfo(profileForm);
-                        showToast('About settings saved');
+                        showToast('About section saved');
                       }}
-                      className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold flex items-center gap-1.5"
+                      className="px-5 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer"
                     >
                       <Save className="w-3.5 h-3.5" />
                       <span>Save About</span>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Section Title</label>
-                      <input
-                        type="text"
-                        value={profileForm.aboutHeading || 'About Me'}
-                        onChange={(e) => setProfileForm({ ...profileForm, aboutHeading: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">About Bio Paragraph</label>
+                      <textarea
+                        rows={5}
+                        value={profileForm.bio}
+                        onChange={(e) => setProfileForm({ ...profileForm, bio: e.target.value })}
+                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Subtitle</label>
-                      <input
-                        type="text"
-                        value={profileForm.aboutSubheading || 'Computer Systems & Embedded Engineer'}
-                        onChange={(e) => setProfileForm({ ...profileForm, aboutSubheading: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-sm focus:outline-none focus:border-[#00eeff]"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Strengths Checklist */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-mono text-[#00eeff]">Key Strengths Checklist</label>
-                    <div className="space-y-2">
-                      {(profileForm.aboutChecklist || [
-                        "CPU & RISC-V Organization",
-                        "ESP32 & IoT Telemetry Nodes",
-                        "React, TypeScript & Tailwind CSS",
-                        "Linux & TCP/IP Networking"
-                      ]).map((item, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/20 text-xs">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-[#00eeff]" />
-                            <span>{item}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newCheck = (profileForm.aboutChecklist || []).filter((_, i) => i !== idx);
-                              setProfileForm({ ...profileForm, aboutChecklist: newCheck });
-                              updatePersonalInfo({ aboutChecklist: newCheck });
-                            }}
-                            className="text-zinc-400 hover:text-rose-400 cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Add new checklist bullet (e.g. Distributed Cloud Systems)"
-                        value={newChecklistInput}
-                        onChange={(e) => setNewChecklistInput(e.target.value)}
-                        className="flex-1 p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono focus:outline-none focus:border-[#00eeff]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (newChecklistInput.trim()) {
-                            const newCheck = [...(profileForm.aboutChecklist || []), newChecklistInput.trim()];
-                            setProfileForm({ ...profileForm, aboutChecklist: newCheck });
-                            updatePersonalInfo({ aboutChecklist: newCheck });
-                            setNewChecklistInput('');
-                            showToast('Checklist item added');
-                          }
-                        }}
-                        className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold"
-                      >
-                        Add
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Stats Pills Management */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-mono text-[#00eeff]">Key Metric Cards</label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {profileForm.stats.map((s, idx) => (
-                        <div key={idx} className="p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 space-y-2">
+                      <label className="block text-xs font-mono text-[#00eeff] mb-1">About Image URL</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={profileForm.aboutImageUrl || ''}
+                          onChange={(e) => setProfileForm({ ...profileForm, aboutImageUrl: e.target.value })}
+                          className="flex-1 p-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-white text-sm"
+                        />
+                        <label className="px-4 py-3 rounded-xl bg-[#0c2236] border border-zinc-700 text-zinc-300 hover:text-white flex items-center gap-1.5 cursor-pointer text-xs">
+                          <Upload className="w-4 h-4 text-[#00eeff]" />
+                          <span>Upload</span>
                           <input
-                            type="text"
-                            value={s.value}
-                            onChange={(e) => {
-                              const newStats = [...profileForm.stats];
-                              newStats[idx].value = e.target.value;
-                              setProfileForm({ ...profileForm, stats: newStats });
-                              updatePersonalInfo({ stats: newStats });
-                            }}
-                            className="w-full p-1.5 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-[#00eeff] text-center font-mono font-black text-sm"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleGenericImageUpload(e, (url) => {
+                              setProfileForm({ ...profileForm, aboutImageUrl: url });
+                            })}
                           />
-                          <input
-                            type="text"
-                            value={s.label}
-                            onChange={(e) => {
-                              const newStats = [...profileForm.stats];
-                              newStats[idx].label = e.target.value;
-                              setProfileForm({ ...profileForm, stats: newStats });
-                              updatePersonalInfo({ stats: newStats });
-                            }}
-                            className="w-full p-1 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-zinc-300 text-center font-mono text-[10px]"
-                          />
-                        </div>
-                      ))}
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 5: SKILLS MANAGEMENT */}
+              {/* TAB 5: SKILLS */}
               {/* ========================================================================= */}
               {activeTab === 'skills' && (
-                <div className="space-y-8 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3">
-                    <h3 className="font-heading font-bold text-white text-lg">Skills Matrix Management</h3>
-                    <p className="text-xs text-zinc-400">Manage technical horizontal progress bars and professional circular dials.</p>
+                <div className="space-y-6 max-w-4xl">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-white text-lg">Skills Matrix & Knowledge</h3>
+                      <p className="text-xs text-zinc-400">Manage technical skills, proficiency levels, and categories.</p>
+                    </div>
                   </div>
 
-                  {/* Technical Skills Section */}
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-heading font-bold text-[#00eeff] uppercase">Technical Skills (Left Column)</h4>
-                    
-                    <div className="space-y-2">
-                      {(profileForm.technicalSkills || []).map((skill, idx) => (
-                        <div key={idx} className="p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/20 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2.5 flex-1">
-                            <span className={`w-6 h-6 rounded bg-[#081b29] border border-[#00eeff]/40 flex items-center justify-center text-xs font-mono font-bold ${skill.iconColor}`}>
-                              {skill.iconText || "•"}
-                            </span>
-                            <input
-                              type="text"
-                              value={skill.name}
-                              onChange={(e) => {
-                                const newSkills = [...(profileForm.technicalSkills || [])];
-                                newSkills[idx].name = e.target.value;
-                                setProfileForm({ ...profileForm, technicalSkills: newSkills });
-                                updateTechnicalSkills(newSkills);
-                              }}
-                              className="p-1 rounded bg-transparent text-white text-xs font-semibold focus:outline-none focus:bg-[#081b29]"
-                            />
-                          </div>
+                  {/* Add skill to category */}
+                  <div className="space-y-6">
+                    {skillCategories.map((cat) => (
+                      <div key={cat.id} className="p-4 rounded-xl bg-[#0c2236] border border-zinc-700 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                            <span className="text-[#00eeff]">•</span>
+                            <span>{cat.name}</span>
+                            <span className="text-xs font-mono text-zinc-400">({cat.skills.length} skills)</span>
+                          </h4>
+                        </div>
 
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1.5">
-                              <input
-                                type="number"
-                                min="0"
-                                max="100"
-                                value={skill.level}
-                                onChange={(e) => {
-                                  const newSkills = [...(profileForm.technicalSkills || [])];
-                                  newSkills[idx].level = parseInt(e.target.value) || 0;
-                                  setProfileForm({ ...profileForm, technicalSkills: newSkills });
-                                  updateTechnicalSkills(newSkills);
-                                }}
-                                className="w-14 p-1 rounded bg-[#081b29] border border-[#00eeff]/30 text-[#00eeff] text-xs font-mono font-bold text-center"
-                              />
-                              <span className="text-xs font-mono text-zinc-400">%</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {cat.skills.map((s, sIdx) => (
+                            <div key={sIdx} className="flex items-center justify-between p-2.5 rounded-lg bg-[#081b29] border border-zinc-800 text-xs">
+                              <div>
+                                <span className="font-bold text-white">{s.name}</span>
+                                <span className="ml-2 text-zinc-400 font-mono">{s.level}%</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => deleteSkill(cat.id, sIdx)}
+                                className="text-rose-400 hover:text-rose-300 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newSkills = (profileForm.technicalSkills || []).filter((_, i) => i !== idx);
-                                setProfileForm({ ...profileForm, technicalSkills: newSkills });
-                                updateTechnicalSkills(newSkills);
-                              }}
-                              className="text-zinc-400 hover:text-rose-400 cursor-pointer"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-
-                    {/* Add New Technical Skill */}
-                    <div className="p-3 rounded-xl bg-[#061521] border border-dashed border-[#00eeff]/30 flex flex-wrap items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Skill Name (e.g. Rust / Go)"
-                        value={techSkillForm.name}
-                        onChange={(e) => setTechSkillForm({ ...techSkillForm, name: e.target.value })}
-                        className="flex-1 min-w-[140px] p-2 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-white text-xs"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Icon Badge (e.g. RS)"
-                        value={techSkillForm.iconText}
-                        onChange={(e) => setTechSkillForm({ ...techSkillForm, iconText: e.target.value })}
-                        className="w-20 p-2 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-white text-xs font-mono text-center"
-                      />
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        placeholder="Level %"
-                        value={techSkillForm.level}
-                        onChange={(e) => setTechSkillForm({ ...techSkillForm, level: parseInt(e.target.value) || 0 })}
-                        className="w-20 p-2 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-[#00eeff] text-xs font-mono text-center"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (techSkillForm.name.trim()) {
-                            const newSkills = [...(profileForm.technicalSkills || []), { ...techSkillForm }];
-                            setProfileForm({ ...profileForm, technicalSkills: newSkills });
-                            updateTechnicalSkills(newSkills);
-                            setTechSkillForm({ name: '', level: 85, iconColor: 'text-[#00eeff]', iconText: 'Code' });
-                            showToast('Technical skill added');
-                          }
-                        }}
-                        className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold"
-                      >
-                        Add Skill
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Professional Skills Section */}
-                  <div className="space-y-4 pt-4 border-t border-[#00eeff]/20">
-                    <h4 className="text-sm font-heading font-bold text-[#00eeff] uppercase">Professional Skills (Radial Dials)</h4>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {(profileForm.professionalSkills || []).map((prof, idx) => (
-                        <div key={idx} className="p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/20 flex items-center justify-between gap-3">
-                          <input
-                            type="text"
-                            value={prof.name}
-                            onChange={(e) => {
-                              const newProf = [...(profileForm.professionalSkills || [])];
-                              newProf[idx].name = e.target.value;
-                              setProfileForm({ ...profileForm, professionalSkills: newProf });
-                              updateProfessionalSkills(newProf);
-                            }}
-                            className="p-1 rounded bg-transparent text-white text-xs font-semibold focus:outline-none focus:bg-[#081b29] flex-1"
-                          />
-
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={prof.percentage}
-                              onChange={(e) => {
-                                const newProf = [...(profileForm.professionalSkills || [])];
-                                newProf[idx].percentage = parseInt(e.target.value) || 0;
-                                setProfileForm({ ...profileForm, professionalSkills: newProf });
-                                updateProfessionalSkills(newProf);
-                              }}
-                              className="w-14 p-1 rounded bg-[#081b29] border border-[#00eeff]/30 text-[#00eeff] text-xs font-mono font-bold text-center"
-                            />
-                            <span className="text-xs font-mono text-zinc-400">%</span>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newProf = (profileForm.professionalSkills || []).filter((_, i) => i !== idx);
-                                setProfileForm({ ...profileForm, professionalSkills: newProf });
-                                updateProfessionalSkills(newProf);
-                              }}
-                              className="text-zinc-400 hover:text-rose-400 cursor-pointer ml-1"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Add New Professional Skill */}
-                    <div className="p-3 rounded-xl bg-[#061521] border border-dashed border-[#00eeff]/30 flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Professional Skill (e.g. Leadership)"
-                        value={profSkillForm.name}
-                        onChange={(e) => setProfSkillForm({ ...profSkillForm, name: e.target.value })}
-                        className="flex-1 p-2 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-white text-xs"
-                      />
-                      <input
-                        type="number"
-                        min="1"
-                        max="100"
-                        placeholder="Percentage"
-                        value={profSkillForm.percentage}
-                        onChange={(e) => setProfSkillForm({ ...profSkillForm, percentage: parseInt(e.target.value) || 0 })}
-                        className="w-24 p-2 rounded-lg bg-[#081b29] border border-[#00eeff]/20 text-[#00eeff] text-xs font-mono text-center"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (profSkillForm.name.trim()) {
-                            const newProf = [...(profileForm.professionalSkills || []), { ...profSkillForm }];
-                            setProfileForm({ ...profileForm, professionalSkills: newProf });
-                            updateProfessionalSkills(newProf);
-                            setProfSkillForm({ name: '', percentage: 85 });
-                            showToast('Professional skill dial added');
-                          }
-                        }}
-                        className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold"
-                      >
-                        Add Dial
-                      </button>
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 6: SERVICES MANAGEMENT */}
+              {/* TAB 6: CERTIFICATES */}
               {/* ========================================================================= */}
-              {activeTab === 'services' && (
-                <div className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+              {activeTab === 'certificates' && (
+                <div className="space-y-6 max-w-4xl">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">Services Management</h3>
-                      <p className="text-xs text-zinc-400">Add, edit or reorganize your hard mirror service cards.</p>
+                      <h3 className="font-bold text-white text-lg">Certificates & Verification</h3>
+                      <p className="text-xs text-zinc-400">Add, edit, and organize verified learning certifications and badges.</p>
                     </div>
                     <button
                       onClick={() => {
-                        setEditingServiceId('new');
-                        setServiceForm({
-                          id: 'svc-' + Date.now(),
+                        setEditingCertId('new');
+                        setCertForm({
                           title: '',
-                          shortDesc: '',
-                          fullDesc: '',
-                          deliverables: []
+                          issuer: '',
+                          date: new Date().getFullYear().toString(),
+                          imageUrl: '',
+                          credentialUrl: '',
+                          description: ''
                         });
                       }}
-                      className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" />
-                      <span>New Service</span>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Certificate</span>
                     </button>
                   </div>
 
-                  {/* Service Editor Form if active */}
-                  {editingServiceId && (
-                    <div className="mirror-card-hard rounded-2xl p-5 space-y-4 border-2 border-[#00eeff]/60">
-                      <div className="flex justify-between items-center border-b border-[#00eeff]/20 pb-2">
-                        <h4 className="text-sm font-heading font-bold text-[#00eeff]">
-                          {editingServiceId === 'new' ? 'Create New Service' : 'Edit Service'}
-                        </h4>
-                        <button
-                          type="button"
-                          onClick={() => setEditingServiceId(null)}
-                          className="text-zinc-400 hover:text-white"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
+                  {/* Certificate Form */}
+                  {editingCertId && (
+                    <div className="p-4 rounded-xl bg-[#0c2236] border border-zinc-700 space-y-4">
+                      <h4 className="font-bold text-white text-sm">
+                        {editingCertId === 'new' ? 'New Certificate' : 'Edit Certificate'}
+                      </h4>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Service Title *</label>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Title</label>
                           <input
                             type="text"
-                            value={serviceForm.title}
-                            placeholder="e.g. Web Design"
-                            onChange={(e) => setServiceForm({ ...serviceForm, title: e.target.value })}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
+                            value={certForm.title}
+                            onChange={(e) => setCertForm({ ...certForm, title: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
                           />
                         </div>
-
                         <div>
-                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Short Card Description *</label>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Issuer / Organization</label>
                           <input
                             type="text"
-                            value={serviceForm.shortDesc}
-                            placeholder="Brief 1-2 sentence card overview"
-                            onChange={(e) => setServiceForm({ ...serviceForm, shortDesc: e.target.value })}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
+                            value={certForm.issuer}
+                            onChange={(e) => setCertForm({ ...certForm, issuer: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Date / Year</label>
+                          <input
+                            type="text"
+                            value={certForm.date}
+                            onChange={(e) => setCertForm({ ...certForm, date: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Credential URL (optional)</label>
+                          <input
+                            type="text"
+                            value={certForm.credentialUrl || ''}
+                            onChange={(e) => setCertForm({ ...certForm, credentialUrl: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Full Service Description (Modal)</label>
-                        <textarea
-                          rows={3}
-                          value={serviceForm.fullDesc}
-                          placeholder="Comprehensive details shown when clicking 'learn more'..."
-                          onChange={(e) => setServiceForm({ ...serviceForm, fullDesc: e.target.value })}
-                          className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs resize-none"
-                        />
-                      </div>
-
-                      {/* Deliverables */}
-                      <div className="space-y-2">
-                        <label className="block text-xs font-mono text-[#00eeff]">Key Deliverables</label>
-                        <div className="flex flex-wrap gap-2">
-                          {(serviceForm.deliverables || []).map((d, i) => (
-                            <span key={i} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#0c2236] border border-[#00eeff]/30 text-xs font-mono text-zinc-200">
-                              <span>{d}</span>
-                              <button
-                                type="button"
-                                onClick={() => setServiceForm({
-                                  ...serviceForm,
-                                  deliverables: (serviceForm.deliverables || []).filter((_, idx) => idx !== i)
-                                })}
-                                className="text-zinc-400 hover:text-rose-400 cursor-pointer"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-
+                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Certificate Image URL</label>
                         <div className="flex gap-2">
                           <input
                             type="text"
-                            placeholder="Add deliverable..."
-                            value={newDeliverableInput}
-                            onChange={(e) => setNewDeliverableInput(e.target.value)}
-                            className="flex-1 p-2 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
+                            value={certForm.imageUrl || ''}
+                            onChange={(e) => setCertForm({ ...certForm, imageUrl: e.target.value })}
+                            className="flex-1 p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
                           />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (newDeliverableInput.trim()) {
-                                setServiceForm({
-                                  ...serviceForm,
-                                  deliverables: [...(serviceForm.deliverables || []), newDeliverableInput.trim()]
-                                });
-                                setNewDeliverableInput('');
-                              }
-                            }}
-                            className="btn-neon-cyan px-3 py-2 text-xs uppercase font-bold"
-                          >
-                            Add
-                          </button>
+                          <label className="px-3 py-2 rounded-lg bg-[#081b29] border border-zinc-700 text-zinc-300 text-xs flex items-center gap-1 cursor-pointer">
+                            <Upload className="w-3.5 h-3.5 text-[#00eeff]" />
+                            <span>Upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleGenericImageUpload(e, (url) => {
+                                setCertForm({ ...certForm, imageUrl: url });
+                              })}
+                            />
+                          </label>
                         </div>
                       </div>
 
-                      <div className="flex justify-end gap-2 pt-2 border-t border-[#00eeff]/20">
+                      <div>
+                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Description</label>
+                        <textarea
+                          rows={2}
+                          value={certForm.description || ''}
+                          onChange={(e) => setCertForm({ ...certForm, description: e.target.value })}
+                          className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
+
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => setEditingServiceId(null)}
-                          className="px-4 py-2 rounded-xl bg-[#0c2236] text-zinc-300 text-xs"
+                          onClick={() => setEditingCertId(null)}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            if (!serviceForm.title || !serviceForm.shortDesc) {
-                              alert('Please provide title and short description.');
-                              return;
-                            }
-                            if (editingServiceId === 'new') {
-                              addService({
-                                id: 'svc-' + Date.now(),
-                                title: serviceForm.title || 'Untitled Service',
-                                shortDesc: serviceForm.shortDesc || '',
-                                fullDesc: serviceForm.fullDesc || serviceForm.shortDesc || '',
-                                deliverables: serviceForm.deliverables || []
+                            if (editingCertId === 'new') {
+                              addCertificate({
+                                id: 'cert-' + Date.now(),
+                                title: certForm.title || 'Verified Skill Certificate',
+                                issuer: certForm.issuer || 'Practical IT Systems Lab',
+                                date: certForm.date || '2024',
+                                imageUrl: certForm.imageUrl || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=900&q=80',
+                                credentialUrl: certForm.credentialUrl,
+                                description: certForm.description || ''
                               });
-                              showToast('Service added');
+                              showToast('Certificate added');
                             } else {
-                              editService(editingServiceId, serviceForm);
-                              showToast('Service updated');
+                              editCertificate(editingCertId, certForm);
+                              showToast('Certificate updated');
                             }
-                            setEditingServiceId(null);
+                            setEditingCertId(null);
                           }}
-                          className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold"
+                          className="px-4 py-1.5 rounded-lg bg-[#00eeff] text-[#081b29] font-bold text-xs cursor-pointer"
                         >
-                          Save Service
+                          Save Certificate
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* List of current services */}
+                  {/* List of certificates */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {services.map((svc) => (
-                      <div key={svc.id} className="p-4 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 flex flex-col justify-between space-y-3">
-                        <div className="space-y-1.5">
-                          <h4 className="font-heading font-bold text-white text-base">{svc.title}</h4>
-                          <p className="text-xs text-zinc-300 line-clamp-2">{svc.shortDesc}</p>
+                    {certificates.map((c) => (
+                      <div key={c.id} className="p-3.5 rounded-xl bg-[#0c2236] border border-zinc-700 space-y-2">
+                        <div className="h-28 rounded-lg overflow-hidden bg-[#081b29]">
+                          <img src={c.imageUrl} alt={c.title} className="w-full h-full object-cover" />
                         </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t border-[#00eeff]/15">
-                          <span className="text-[11px] font-mono text-[#00eeff]">{svc.deliverables?.length || 0} Deliverables</span>
-                          <div className="flex items-center gap-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-bold text-white text-xs sm:text-sm">{c.title}</h4>
+                            <p className="text-[11px] text-zinc-400">{c.issuer} • {c.date}</p>
+                          </div>
+                          <div className="flex items-center gap-1">
                             <button
                               onClick={() => {
-                                setEditingServiceId(svc.id);
-                                setServiceForm({ ...svc });
+                                setEditingCertId(c.id);
+                                setCertForm({ ...c });
                               }}
-                              className="p-1.5 rounded-lg bg-[#081b29] text-[#00eeff] hover:bg-[#00eeff]/20 text-xs cursor-pointer"
+                              className="p-1 rounded bg-[#081b29] text-[#00eeff] text-xs cursor-pointer"
                             >
-                              <Edit3 className="w-4 h-4" />
+                              <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => {
-                                if (confirm(`Delete service "${svc.title}"?`)) {
-                                  deleteService(svc.id);
-                                  showToast('Service deleted');
+                                if (confirm(`Delete certificate "${c.title}"?`)) {
+                                  deleteCertificate(c.id);
+                                  showToast('Certificate removed');
                                 }
                               }}
-                              className="p-1.5 rounded-lg bg-[#081b29] text-rose-400 hover:bg-rose-950 text-xs cursor-pointer"
+                              className="p-1 rounded bg-[#081b29] text-rose-400 text-xs cursor-pointer"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
@@ -1330,182 +1087,303 @@ export const AdminPanel: React.FC = () => {
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 7: PROJECTS SHOWCASE */}
+              {/* TAB 7: JOURNEY & EDUCATION */}
               {/* ========================================================================= */}
-              {activeTab === 'projects' && (
+              {activeTab === 'journey' && (
                 <div className="space-y-6 max-w-4xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">Projects Showcase</h3>
-                      <p className="text-xs text-zinc-400">Add, edit, upload project covers, and manage repository URLs.</p>
+                      <h3 className="font-bold text-white text-lg">Journey & Practical Milestones</h3>
+                      <p className="text-xs text-zinc-400">Track educational achievements and hands-on system building milestones.</p>
                     </div>
                     <button
                       onClick={() => {
-                        setEditingProjectId('new');
-                        setProjectForm({
-                          id: 'proj-' + Date.now(),
-                          title: '',
-                          category: 'systems',
+                        setEditingExpId('new');
+                        setExpForm({
+                          role: '',
+                          organization: '',
+                          location: 'Rusizi, Rwanda',
+                          period: '2024 - Present',
                           description: '',
-                          longDescription: '',
-                          technologies: ['C++', 'RISC-V'],
-                          keyFeatures: [],
-                          githubUrl: 'https://github.com',
-                          liveUrl: '#',
-                          imageUrl: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&w=900&q=80',
-                          featured: true
+                          category: 'education'
                         });
                       }}
-                      className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold flex items-center gap-1.5"
+                      className="px-4 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" />
-                      <span>New Project</span>
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Milestone</span>
                     </button>
                   </div>
 
-                  {/* Project Form */}
-                  {editingProjectId && (
-                    <div className="mirror-card-hard rounded-2xl p-6 space-y-4 border-2 border-[#00eeff]/60">
-                      <div className="flex justify-between items-center border-b border-[#00eeff]/20 pb-2">
-                        <h4 className="text-sm font-heading font-bold text-[#00eeff]">
-                          {editingProjectId === 'new' ? 'Add New Project' : 'Edit Project'}
-                        </h4>
-                        <button onClick={() => setEditingProjectId(null)} className="text-zinc-400 hover:text-white">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
+                  {editingExpId && (
+                    <div className="p-4 rounded-xl bg-[#0c2236] border border-zinc-700 space-y-4">
+                      <h4 className="font-bold text-white text-sm">
+                        {editingExpId === 'new' ? 'New Milestone' : 'Edit Milestone'}
+                      </h4>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Project Title *</label>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Role / Milestone Title</label>
                           <input
                             type="text"
-                            value={projectForm.title}
-                            placeholder="e.g. RISC-V 5-Stage Pipelined Processor"
-                            onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
+                            value={expForm.role}
+                            onChange={(e) => setExpForm({ ...expForm, role: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
                           />
                         </div>
-
                         <div>
-                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Category</label>
-                          <select
-                            value={projectForm.category}
-                            onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value })}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
-                          >
-                            <option value="systems">Systems & Architecture</option>
-                            <option value="embedded">Embedded IoT</option>
-                            <option value="web">Web Applications</option>
-                            <option value="networking">Networking</option>
-                          </select>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">School / Organization</label>
+                          <input
+                            type="text"
+                            value={expForm.organization}
+                            onChange={(e) => setExpForm({ ...expForm, organization: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Period</label>
+                          <input
+                            type="text"
+                            value={expForm.period}
+                            onChange={(e) => setExpForm({ ...expForm, period: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Location</label>
+                          <input
+                            type="text"
+                            value={expForm.location}
+                            onChange={(e) => setExpForm({ ...expForm, location: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Summary Description *</label>
+                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Description</label>
                         <textarea
-                          rows={2}
-                          value={projectForm.description}
-                          placeholder="Brief card summary..."
-                          onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
-                          className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs resize-none"
+                          rows={3}
+                          value={expForm.description}
+                          onChange={(e) => setExpForm({ ...expForm, description: e.target.value })}
+                          className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Full Technical Specifications (Modal)</label>
-                        <textarea
-                          rows={4}
-                          value={projectForm.longDescription}
-                          placeholder="Deep technical overview..."
-                          onChange={(e) => setProjectForm({ ...projectForm, longDescription: e.target.value })}
-                          className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs resize-none"
-                        />
-                      </div>
-
-                      {/* Project Cover Image */}
-                      <div className="space-y-2">
-                        <label className="block text-xs font-mono text-[#00eeff]">Cover Image</label>
-                        <div className="flex items-center gap-3">
-                          {projectForm.imageUrl && (
-                            <img
-                              src={projectForm.imageUrl}
-                              alt="Preview"
-                              className="w-16 h-12 rounded-lg object-cover border border-[#00eeff]/40"
-                            />
-                          )}
-                          <label className="btn-neon-cyan px-3 py-1.5 text-xs uppercase font-bold cursor-pointer flex items-center gap-1">
-                            <Upload className="w-3 h-3" />
-                            <span>Upload Cover</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => handleGenericImageUpload(e, (url) => setProjectForm(prev => ({ ...prev, imageUrl: url })))}
-                            />
-                          </label>
-                          <input
-                            type="text"
-                            placeholder="Or image URL..."
-                            value={projectForm.imageUrl || ''}
-                            onChange={(e) => setProjectForm({ ...projectForm, imageUrl: e.target.value })}
-                            className="flex-1 p-2 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-mono text-[#00eeff] mb-1">GitHub Repository URL</label>
-                          <input
-                            type="text"
-                            value={projectForm.githubUrl || ''}
-                            placeholder="https://github.com/..."
-                            onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Live Demo / Specification URL</label>
-                          <input
-                            type="text"
-                            value={projectForm.liveUrl || ''}
-                            placeholder="https://..."
-                            onChange={(e) => setProjectForm({ ...projectForm, liveUrl: e.target.value })}
-                            className="w-full p-2.5 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end gap-2 pt-2 border-t border-[#00eeff]/20">
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => setEditingProjectId(null)}
-                          className="px-4 py-2 rounded-xl bg-[#0c2236] text-zinc-300 text-xs"
+                          onClick={() => setEditingExpId(null)}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs cursor-pointer"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={() => {
-                            if (!projectForm.title || !projectForm.description) {
-                              alert('Please fill out the project title and description.');
-                              return;
+                            if (editingExpId === 'new') {
+                              addExperience({
+                                id: 'exp-' + Date.now(),
+                                role: expForm.role || 'Computer System Learner',
+                                organization: expForm.organization || 'Self-Directed & Academic Labs',
+                                location: expForm.location || 'Rusizi, Rwanda',
+                                period: expForm.period || '2024 - Present',
+                                description: expForm.description || '',
+                                type: 'academic',
+                                highlights: [],
+                                technologies: ['Hardware', 'Linux', 'Networking']
+                              });
+                              showToast('Milestone added');
+                            } else {
+                              editExperience(editingExpId, expForm);
+                              showToast('Milestone updated');
                             }
+                            setEditingExpId(null);
+                          }}
+                          className="px-4 py-1.5 rounded-lg bg-[#00eeff] text-[#081b29] font-bold text-xs cursor-pointer"
+                        >
+                          Save Milestone
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List of experiences */}
+                  <div className="space-y-3">
+                    {experiences.map((exp) => (
+                      <div key={exp.id} className="p-3.5 rounded-xl bg-[#0c2236] border border-zinc-700 flex items-start justify-between">
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-white text-xs sm:text-sm">{exp.role}</h4>
+                          <p className="text-[11px] text-zinc-400">{exp.organization} • {exp.period}</p>
+                          <p className="text-xs text-zinc-300">{exp.description}</p>
+                        </div>
+                        <div className="flex items-center gap-1 ml-4">
+                          <button
+                            onClick={() => {
+                              setEditingExpId(exp.id);
+                              setExpForm({ ...exp });
+                            }}
+                            className="p-1 rounded bg-[#081b29] text-[#00eeff] text-xs cursor-pointer"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete milestone "${exp.role}"?`)) {
+                                deleteExperience(exp.id);
+                                showToast('Milestone removed');
+                              }
+                            }}
+                            className="p-1 rounded bg-[#081b29] text-rose-400 text-xs cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ========================================================================= */}
+              {/* TAB 8: PROJECTS */}
+              {/* ========================================================================= */}
+              {activeTab === 'projects' && (
+                <div className="space-y-6 max-w-4xl">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-white text-lg">Project Management</h3>
+                      <p className="text-xs text-zinc-400">Add, edit, or remove practical labs and system builds.</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingProjectId('new');
+                        setProjectForm({
+                          title: '',
+                          subtitle: '',
+                          category: 'systems',
+                          description: '',
+                          technologies: [],
+                          githubUrl: '',
+                          liveUrl: '',
+                          imageUrl: '',
+                          featured: true,
+                          date: new Date().getFullYear().toString()
+                        });
+                      }}
+                      className="px-4 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New Project</span>
+                    </button>
+                  </div>
+
+                  {editingProjectId && (
+                    <div className="p-4 rounded-xl bg-[#0c2236] border border-zinc-700 space-y-4">
+                      <h4 className="font-bold text-white text-sm">
+                        {editingProjectId === 'new' ? 'Create Project' : 'Edit Project'}
+                      </h4>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Title</label>
+                          <input
+                            type="text"
+                            value={projectForm.title}
+                            onChange={(e) => setProjectForm({ ...projectForm, title: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Category</label>
+                          <select
+                            value={projectForm.category}
+                            onChange={(e) => setProjectForm({ ...projectForm, category: e.target.value as any })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          >
+                            <option value="systems">Hardware & Systems</option>
+                            <option value="networking">Networking</option>
+                            <option value="web">Web Development</option>
+                            <option value="database">Database</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">GitHub Link (optional)</label>
+                          <input
+                            type="text"
+                            value={projectForm.githubUrl || ''}
+                            onChange={(e) => setProjectForm({ ...projectForm, githubUrl: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-mono text-[#00eeff] mb-1">Live Demo / Documentation Link (optional)</label>
+                          <input
+                            type="text"
+                            value={projectForm.liveUrl || ''}
+                            onChange={(e) => setProjectForm({ ...projectForm, liveUrl: e.target.value })}
+                            className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Project Image URL</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={projectForm.imageUrl || ''}
+                            onChange={(e) => setProjectForm({ ...projectForm, imageUrl: e.target.value })}
+                            className="flex-1 p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                          />
+                          <label className="px-3 py-2 rounded-lg bg-[#081b29] border border-zinc-700 text-zinc-300 text-xs flex items-center gap-1 cursor-pointer">
+                            <Upload className="w-3.5 h-3.5 text-[#00eeff]" />
+                            <span>Upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => handleGenericImageUpload(e, (url) => {
+                                setProjectForm({ ...projectForm, imageUrl: url });
+                              })}
+                            />
+                          </label>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-mono text-[#00eeff] mb-1">Short Description</label>
+                        <textarea
+                          rows={3}
+                          value={projectForm.description || ''}
+                          onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })}
+                          className="w-full p-2.5 rounded-lg bg-[#081b29] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
+
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditingProjectId(null)}
+                          className="px-3 py-1.5 rounded-lg bg-zinc-800 text-zinc-300 text-xs cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
                             if (editingProjectId === 'new') {
                               addProject({
                                 id: 'proj-' + Date.now(),
-                                title: projectForm.title || 'Untitled Project',
+                                title: projectForm.title || 'Untitled System Project',
                                 subtitle: projectForm.subtitle || '',
                                 category: projectForm.category || 'systems',
                                 description: projectForm.description || '',
                                 longDescription: projectForm.longDescription || projectForm.description || '',
-                                technologies: projectForm.technologies && projectForm.technologies.length > 0 ? projectForm.technologies : ['C++', 'Architecture'],
-                                keyFeatures: projectForm.keyFeatures || [],
-                                githubUrl: projectForm.githubUrl || 'https://github.com',
-                                liveUrl: projectForm.liveUrl || '#',
+                                keyFeatures: projectForm.keyFeatures || ['Practical Implementation', 'Hardware Testing'],
+                                technologies: projectForm.technologies && projectForm.technologies.length > 0 ? projectForm.technologies : ['Hardware', 'Diagnostics'],
+                                githubUrl: projectForm.githubUrl || '',
+                                liveUrl: projectForm.liveUrl || '',
                                 imageUrl: projectForm.imageUrl || 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&w=900&q=80',
                                 featured: true,
                                 date: `${new Date().getFullYear()}`
@@ -1517,7 +1395,7 @@ export const AdminPanel: React.FC = () => {
                             }
                             setEditingProjectId(null);
                           }}
-                          className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold"
+                          className="px-4 py-1.5 rounded-lg bg-[#00eeff] text-[#081b29] font-bold text-xs cursor-pointer"
                         >
                           Save Project
                         </button>
@@ -1528,9 +1406,9 @@ export const AdminPanel: React.FC = () => {
                   {/* List of projects */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {projects.map((proj) => (
-                      <div key={proj.id} className="p-3.5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 flex flex-col justify-between space-y-3">
+                      <div key={proj.id} className="p-3.5 rounded-xl bg-[#0c2236] border border-zinc-700 flex flex-col justify-between space-y-3">
                         <div className="space-y-2">
-                          <div className="h-28 rounded-xl overflow-hidden bg-[#081b29]">
+                          <div className="h-28 rounded-lg overflow-hidden bg-[#081b29]">
                             {proj.imageUrl ? (
                               <img src={proj.imageUrl} alt={proj.title} className="w-full h-full object-cover" />
                             ) : (
@@ -1539,11 +1417,11 @@ export const AdminPanel: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <h4 className="font-heading font-bold text-white text-sm line-clamp-1">{proj.title}</h4>
+                          <h4 className="font-bold text-white text-sm line-clamp-1">{proj.title}</h4>
                           <p className="text-xs text-zinc-300 line-clamp-2">{proj.description}</p>
                         </div>
 
-                        <div className="flex items-center justify-between pt-2 border-t border-[#00eeff]/15">
+                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
                           <span className="text-[10px] font-mono text-[#00eeff] uppercase">{proj.category}</span>
                           <div className="flex items-center gap-1.5">
                             <button
@@ -1551,7 +1429,7 @@ export const AdminPanel: React.FC = () => {
                                 setEditingProjectId(proj.id);
                                 setProjectForm({ ...proj });
                               }}
-                              className="p-1.5 rounded-lg bg-[#081b29] text-[#00eeff] hover:bg-[#00eeff]/20 text-xs cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#081b29] text-[#00eeff] text-xs cursor-pointer"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
@@ -1562,7 +1440,7 @@ export const AdminPanel: React.FC = () => {
                                   showToast('Project deleted');
                                 }
                               }}
-                              className="p-1.5 rounded-lg bg-[#081b29] text-rose-400 hover:bg-rose-950 text-xs cursor-pointer"
+                              className="p-1.5 rounded-lg bg-[#081b29] text-rose-400 text-xs cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1575,18 +1453,18 @@ export const AdminPanel: React.FC = () => {
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 8: MEDIA & IMAGE MANAGER */}
+              {/* TAB 9: MEDIA & HUB */}
               {/* ========================================================================= */}
               {activeTab === 'media' && (
                 <div className="space-y-6 max-w-4xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">Central Media & Image Hub</h3>
-                      <p className="text-xs text-zinc-400">View, upload, replace, or copy URLs for all images used on the portfolio.</p>
+                      <h3 className="font-bold text-white text-lg">Central Media Hub</h3>
+                      <p className="text-xs text-zinc-400">View, upload, and manage custom photo assets.</p>
                     </div>
-                    <label className="btn-neon-cyan px-4 py-2 text-xs uppercase font-bold flex items-center gap-1.5 cursor-pointer">
+                    <label className="px-4 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer">
                       <Upload className="w-4 h-4" />
-                      <span>Upload New Image</span>
+                      <span>Upload Media</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -1595,8 +1473,10 @@ export const AdminPanel: React.FC = () => {
                           addGalleryItem({
                             id: 'img-' + Date.now(),
                             title: mediaTitle || 'Portfolio Image',
-                            url: url,
-                            category: mediaCategory
+                            imageUrl: url,
+                            category: mediaCategory,
+                            caption: mediaTitle || 'Portfolio Photo',
+                            tags: ['computer-systems', 'hardware']
                           });
                           showToast('Image saved to central gallery');
                         })}
@@ -1604,200 +1484,278 @@ export const AdminPanel: React.FC = () => {
                     </label>
                   </div>
 
-                  {/* Active Site Images Quick Strip */}
-                  <div className="space-y-3">
-                    <h4 className="text-xs font-mono text-[#00eeff] uppercase font-bold">Active Core Photos</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {/* Logo image */}
-                      <div className="p-3.5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 space-y-2">
-                        <span className="text-[10px] font-mono text-[#00eeff] font-bold">Brand Logo</span>
-                        <div className="h-24 rounded-xl bg-[#081b29] flex items-center justify-center p-2">
-                          {personalInfo.customLogoUrl ? (
-                            <img src={personalInfo.customLogoUrl} alt="Logo" className="h-full object-contain" />
-                          ) : (
-                            <span className="text-xs text-zinc-500 font-mono">Text Logo Active</span>
-                          )}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {galleryItems.map((item) => (
+                      <div key={item.id} className="p-2.5 rounded-xl bg-[#0c2236] border border-zinc-700 space-y-2">
+                        <div className="h-28 rounded-lg overflow-hidden bg-[#081b29]">
+                          <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
                         </div>
-                      </div>
-
-                      {/* Hero Portrait */}
-                      <div className="p-3.5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 space-y-2">
-                        <span className="text-[10px] font-mono text-[#00eeff] font-bold">Hero Portrait</span>
-                        <div className="h-24 rounded-xl bg-[#081b29] overflow-hidden">
-                          <img src={personalInfo.portraitUrl || personalInfo.avatarUrl} alt="Hero" className="w-full h-full object-cover" />
-                        </div>
-                      </div>
-
-                      {/* About Portrait */}
-                      <div className="p-3.5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 space-y-2">
-                        <span className="text-[10px] font-mono text-[#00eeff] font-bold">About Portrait</span>
-                        <div className="h-24 rounded-xl bg-[#081b29] overflow-hidden">
-                          <img src={personalInfo.aboutImageUrl || personalInfo.portraitUrl} alt="About" className="w-full h-full object-cover" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Uploaded Gallery Collection */}
-                  <div className="space-y-3 pt-4 border-t border-[#00eeff]/20">
-                    <h4 className="text-xs font-mono text-[#00eeff] uppercase font-bold">Custom Uploaded Media Assets ({galleryItems.length})</h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                      {galleryItems.map((item) => (
-                        <div key={item.id} className="p-2.5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 space-y-2">
-                          <div className="h-28 rounded-xl overflow-hidden bg-[#081b29]">
-                            <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-mono text-[10px] text-zinc-300 truncate">{item.title}</span>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-mono text-[10px] text-zinc-300 truncate">{item.title}</span>
+                          <div className="flex items-center gap-1.5">
                             <button
+                              type="button"
+                              onClick={() => {
+                                const updated = {
+                                  ...profileForm,
+                                  portraitUrl: item.imageUrl,
+                                  avatarUrl: item.imageUrl,
+                                  aboutImageUrl: item.imageUrl
+                                };
+                                setProfileForm(updated);
+                                updatePersonalInfo(updated);
+                                showToast(`Set "${item.title}" as Profile Picture!`);
+                              }}
+                              className="px-2 py-1 rounded bg-[#081b29] hover:bg-[#00eeff]/20 text-[#00eeff] text-[10px] font-mono flex items-center gap-1 cursor-pointer transition-colors"
+                              title="Set as Profile Picture"
+                            >
+                              <Camera className="w-3 h-3" />
+                              <span>Set Profile</span>
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => {
                                 deleteGalleryItem(item.id);
-                                showToast('Image deleted from gallery');
+                                showToast('Image deleted');
                               }}
-                              className="text-rose-400 hover:text-rose-300 cursor-pointer"
+                              className="p-1 rounded text-rose-400 hover:text-rose-300 cursor-pointer"
+                              title="Delete Image"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 9: CONTACT & SOCIALS */}
+              {/* TAB 10: CONTACT & SOCIALS */}
               {/* ========================================================================= */}
               {activeTab === 'contact' && (
                 <form onSubmit={handleProfileSave} className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3 flex justify-between items-center">
+                  <div className="border-b border-zinc-800 pb-3 flex justify-between items-center">
                     <div>
-                      <h3 className="font-heading font-bold text-white text-lg">Contact & Social Networks</h3>
-                      <p className="text-xs text-zinc-400">Configure your direct messaging numbers and developer links.</p>
+                      <h3 className="font-bold text-white text-lg">Contact & Social Networks</h3>
+                      <p className="text-xs text-zinc-400">Configure messaging numbers, email, and social profile links.</p>
                     </div>
-                    <button type="submit" className="btn-neon-cyan px-5 py-2 text-xs uppercase font-bold flex items-center gap-1.5">
+                    <button type="submit" className="px-5 py-2 rounded-xl bg-[#00eeff] hover:bg-[#00c8db] text-[#081b29] font-bold text-xs uppercase flex items-center gap-1.5 cursor-pointer">
                       <Save className="w-3.5 h-3.5" />
                       <span>Save Socials</span>
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">WhatsApp Number</label>
-                      <input
-                        type="text"
-                        value={profileForm.whatsappNumber}
-                        onChange={(e) => setProfileForm({ ...profileForm, whatsappNumber: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                      />
+                    {/* WhatsApp */}
+                    <div className="p-3.5 rounded-xl bg-[#081b29] border border-emerald-500/30 space-y-2">
+                      <span className="text-[11px] font-mono font-bold text-emerald-400 uppercase">WhatsApp Channel</span>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">WhatsApp Number / Link</label>
+                        <input
+                          type="text"
+                          value={profileForm.whatsappNumber}
+                          onChange={(e) => setProfileForm({ ...profileForm, whatsappNumber: e.target.value })}
+                          placeholder="+250 794 410 997"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Assigned Name / Display</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.whatsappName || profileForm.whatsappDisplay || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            whatsappDisplay: e.target.value,
+                            socials: { ...profileForm.socials, whatsappName: e.target.value }
+                          })}
+                          placeholder="e.g. +250 794 410 997"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">WhatsApp Display Text</label>
-                      <input
-                        type="text"
-                        value={profileForm.whatsappDisplay || ''}
-                        placeholder="+250 788 888 888"
-                        onChange={(e) => setProfileForm({ ...profileForm, whatsappDisplay: e.target.value })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                      />
+                    {/* Instagram */}
+                    <div className="p-3.5 rounded-xl bg-[#081b29] border border-pink-500/30 space-y-2">
+                      <span className="text-[11px] font-mono font-bold text-pink-400 uppercase">Instagram Channel</span>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Instagram URL</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.instagram || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, instagram: e.target.value }
+                          })}
+                          placeholder="https://instagram.com/yourhandle"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Assigned Name / Handle</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.instagramName || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, instagramName: e.target.value }
+                          })}
+                          placeholder="e.g. @muhire_jules"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">GitHub URL</label>
-                      <input
-                        type="text"
-                        value={profileForm.socials.github}
-                        onChange={(e) => setProfileForm({
-                          ...profileForm,
-                          socials: { ...profileForm.socials, github: e.target.value }
-                        })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                      />
+                    {/* Facebook */}
+                    <div className="p-3.5 rounded-xl bg-[#081b29] border border-blue-500/30 space-y-2">
+                      <span className="text-[11px] font-mono font-bold text-sky-400 uppercase">Facebook Channel</span>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Facebook URL</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.facebook || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, facebook: e.target.value }
+                          })}
+                          placeholder="https://facebook.com/yourprofile"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Assigned Name / Display</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.facebookName || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, facebookName: e.target.value }
+                          })}
+                          placeholder="e.g. MUHIRE JULES"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">LinkedIn URL</label>
-                      <input
-                        type="text"
-                        value={profileForm.socials.linkedin}
-                        onChange={(e) => setProfileForm({
-                          ...profileForm,
-                          socials: { ...profileForm.socials, linkedin: e.target.value }
-                        })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                      />
+                    {/* GitHub */}
+                    <div className="p-3.5 rounded-xl bg-[#081b29] border border-[#00eeff]/30 space-y-2">
+                      <span className="text-[11px] font-mono font-bold text-[#00eeff] uppercase">GitHub Channel</span>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">GitHub URL</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.github || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, github: e.target.value }
+                          })}
+                          placeholder="https://github.com/username"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Assigned Name / Handle</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.githubName || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, githubName: e.target.value }
+                          })}
+                          placeholder="e.g. muhirejules"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Twitter / X URL</label>
-                      <input
-                        type="text"
-                        value={profileForm.socials.twitter || ''}
-                        onChange={(e) => setProfileForm({
-                          ...profileForm,
-                          socials: { ...profileForm.socials, twitter: e.target.value }
-                        })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                      />
+                    {/* LinkedIn */}
+                    <div className="p-3.5 rounded-xl bg-[#081b29] border border-indigo-500/30 space-y-2">
+                      <span className="text-[11px] font-mono font-bold text-indigo-400 uppercase">LinkedIn Channel</span>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">LinkedIn URL</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.linkedin || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, linkedin: e.target.value }
+                          })}
+                          placeholder="https://linkedin.com/in/profile"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Assigned Name</label>
+                        <input
+                          type="text"
+                          value={profileForm.socials?.linkedinName || ''}
+                          onChange={(e) => setProfileForm({
+                            ...profileForm,
+                            socials: { ...profileForm.socials, linkedinName: e.target.value }
+                          })}
+                          placeholder="e.g. MUHIRE JULES"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-mono text-[#00eeff] mb-1">Telegram URL</label>
-                      <input
-                        type="text"
-                        value={profileForm.socials.telegram || ''}
-                        onChange={(e) => setProfileForm({
-                          ...profileForm,
-                          socials: { ...profileForm.socials, telegram: e.target.value }
-                        })}
-                        className="w-full p-3 rounded-xl bg-[#0c2236] border border-[#00eeff]/30 text-white text-xs font-mono"
-                      />
+                    {/* Email */}
+                    <div className="p-3.5 rounded-xl bg-[#081b29] border border-amber-500/30 space-y-2">
+                      <span className="text-[11px] font-mono font-bold text-amber-400 uppercase">Direct Email</span>
+                      <div>
+                        <label className="block text-[10px] font-mono text-zinc-400 mb-1">Email Address</label>
+                        <input
+                          type="email"
+                          value={profileForm.email}
+                          onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                          placeholder="mauricemjules@gmail.com"
+                          className="w-full p-2.5 rounded-lg bg-[#0c2236] border border-zinc-700 text-white text-xs"
+                        />
+                      </div>
                     </div>
                   </div>
                 </form>
               )}
 
               {/* ========================================================================= */}
-              {/* TAB 10: BACKUP & SYSTEM */}
+              {/* TAB 11: SYSTEM BACKUP & RESET */}
               {/* ========================================================================= */}
               {activeTab === 'system' && (
                 <div className="space-y-6 max-w-3xl">
-                  <div className="border-b border-[#00eeff]/20 pb-3">
-                    <h3 className="font-heading font-bold text-white text-lg">System, Persistence & Backup</h3>
-                    <p className="text-xs text-zinc-400">Export your complete configuration as JSON, restore from file, or reset.</p>
+                  <div className="border-b border-zinc-800 pb-3">
+                    <h3 className="font-bold text-white text-lg">System Configuration & Data</h3>
+                    <p className="text-xs text-zinc-400">Export snapshot backups, restore previous states, or reset to original defaults.</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Export Backup */}
-                    <div className="p-5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 space-y-3">
+                    <div className="p-5 rounded-2xl bg-[#0c2236] border border-zinc-700 space-y-3">
                       <div className="flex items-center gap-2 text-[#00eeff]">
                         <Download className="w-5 h-5" />
-                        <h4 className="font-heading font-bold text-white text-sm">Export Portfolio JSON</h4>
+                        <h4 className="font-bold text-white text-sm">Export Data Backup</h4>
                       </div>
                       <p className="text-xs text-zinc-400">
-                        Download a full snapshot of all projects, skills, services, logo, and profile settings.
+                        Download all portfolio text, customized images, certificates, and settings into a JSON backup file.
                       </p>
                       <button
                         onClick={handleExport}
-                        className="btn-neon-cyan w-full py-2.5 text-xs uppercase font-bold"
+                        className="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-[#00eeff] border border-zinc-700 text-xs font-bold uppercase transition-colors cursor-pointer"
                       >
-                        Download Backup
+                        Download Backup JSON
                       </button>
                     </div>
 
-                    {/* Import Backup */}
-                    <div className="p-5 rounded-2xl bg-[#0c2236] border border-[#00eeff]/30 space-y-3">
+                    <div className="p-5 rounded-2xl bg-[#0c2236] border border-zinc-700 space-y-3">
                       <div className="flex items-center gap-2 text-[#00eeff]">
                         <Upload className="w-5 h-5" />
-                        <h4 className="font-heading font-bold text-white text-sm">Import / Restore JSON</h4>
+                        <h4 className="font-bold text-white text-sm">Import Data Backup</h4>
                       </div>
                       <p className="text-xs text-zinc-400">
-                        Restore from a previously saved JSON file to instantly overwrite portfolio state.
+                        Restore your portfolio instantly from an exported JSON backup file.
                       </p>
-                      <label className="btn-neon-cyan w-full py-2.5 text-xs uppercase font-bold flex items-center justify-center gap-2 cursor-pointer">
-                        <span>Select File</span>
+                      <label className="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-bold uppercase flex items-center justify-center gap-2 cursor-pointer transition-colors">
+                        <span>Select JSON File</span>
                         <input
                           type="file"
                           accept=".json"
@@ -1808,25 +1766,22 @@ export const AdminPanel: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Reset to Factory Defaults */}
                   <div className="p-5 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-3">
-                    <div className="flex items-center gap-2 text-rose-400">
-                      <AlertCircle className="w-5 h-5" />
-                      <h4 className="font-heading font-bold text-white text-sm">Factory Reset</h4>
-                    </div>
+                    <h4 className="font-bold text-rose-400 text-sm">Factory Reset</h4>
                     <p className="text-xs text-zinc-400">
-                      Clear all changes saved in browser storage and restore the pristine original state.
+                      Reset all content, photos, and skills back to the default Computer System Learner profile configuration.
                     </p>
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to reset all portfolio data back to default?')) {
+                        if (confirm("Are you sure you want to reset all portfolio data back to defaults?")) {
                           resetToDefaults();
-                          showToast('Portfolio reset to default state');
+                          setProfileForm(personalInfo);
+                          showToast("Portfolio reset to default template");
                         }
                       }}
-                      className="px-5 py-2.5 rounded-xl bg-rose-950 border border-rose-500/50 text-rose-300 hover:bg-rose-900 text-xs font-bold transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-rose-900/50 hover:bg-rose-800/60 text-rose-300 border border-rose-500/40 text-xs font-bold cursor-pointer"
                     >
-                      Reset All Data to Defaults
+                      Reset Everything to Defaults
                     </button>
                   </div>
                 </div>

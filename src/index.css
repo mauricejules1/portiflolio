@@ -153,3 +153,64 @@
   box-shadow: 0 0 10px #00eeff;
 }
 
+/* Vibrating and Pulsing Animations for Bottom-Right Socials and Logo */
+@keyframes subtleVibrate {
+  0% { transform: translateY(0) scale(1) rotate(0deg); }
+  20% { transform: translateY(-2px) scale(1.03) rotate(-1deg); }
+  40% { transform: translateY(2px) scale(1.02) rotate(1deg); }
+  60% { transform: translateY(-1px) scale(1.03) rotate(-0.5deg); }
+  80% { transform: translateY(1px) scale(1.01) rotate(0.5deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+
+@keyframes logoBounceVibrate {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    filter: drop-shadow(0 0 20px rgba(0, 238, 255, 0.6));
+  }
+  25% {
+    transform: translateY(-8px) scale(1.06) rotate(-1deg);
+    filter: drop-shadow(0 0 35px rgba(0, 238, 255, 0.9)) drop-shadow(0 0 60px rgba(217, 70, 239, 0.5));
+  }
+  50% {
+    transform: translateY(0) scale(0.98);
+    filter: drop-shadow(0 0 25px rgba(0, 238, 255, 0.7));
+  }
+  75% {
+    transform: translateY(-4px) scale(1.03) rotate(1deg);
+    filter: drop-shadow(0 0 30px rgba(0, 238, 255, 0.85)) drop-shadow(0 0 50px rgba(0, 119, 255, 0.6));
+  }
+}
+
+@keyframes floatMirror {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(2deg);
+  }
+}
+
+.animate-vibrate-social {
+  animation: subtleVibrate 2.6s ease-in-out infinite;
+}
+
+.animate-logo-bounce {
+  animation: logoBounceVibrate 2s ease-in-out infinite;
+}
+
+.animate-mirror-float {
+  animation: floatMirror 6s ease-in-out infinite;
+}
+
+/* Floating Mirror Prisms */
+.floating-mirror-orb {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(50px);
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+
+
